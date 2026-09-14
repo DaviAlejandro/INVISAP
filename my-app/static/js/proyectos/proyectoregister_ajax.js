@@ -151,10 +151,6 @@ document.getElementById('btnGuardarProyecto').addEventListener('click', function
         return;
     }
 
-    if (estimacion && estimacion.value.trim() !== "") {
-        estimacion.value = estimacion.value.replace(/\./g, "").replace(",", ".");
-    }
-
     if (codigoProyecto && codigoProyecto.value.trim() !== '') {
         const validarCodigo = codigoProyecto.value.trim();
         fetch(`/api/proyecto/validar-codigo/${validarCodigo}`, { method: 'GET' })
@@ -186,6 +182,11 @@ document.getElementById('btnGuardarProyecto').addEventListener('click', function
 });
 
 function enviarFormulario(form) {
+    const moneda = document.getElementById('moneda_p');
+    const estimacion = document.getElementById('estimacion_p');
+    if (moneda && estimacion && estimacion.value.trim()) {
+        estimacion.value = moneda.value + ' ' + estimacion.value;
+    }
     const formData = new FormData(form);
     fetch(form.action, { method: 'POST', body: formData })
     .then(response => response.json())
@@ -205,15 +206,28 @@ function enviarFormulario(form) {
                         <td class="fw-bold text-secondary">${p.codigo_proyecto}</td>
                         <td>${formatFecha(p.fecha_planificacion)}</td>
                         <td class="text-uppercase">${p.nombre_solicitante || '—'}</td>
-                        <td>${p.descripcion_tecnica || '—'}</td>
-                        <td>${p.computos_metricos_texto || '—'}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.descripcion_tecnica || '—'}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.computos_metricos_texto || '—'}</td>
                         <td>${p.problematica || '—'}</td>
                         <td><span class="badge bg-dark">${p.nombre_maquinaria || 'PENDIENTE'}</span></td>
                         <td><span class="badge bg-info">${p.nombre_proyectista || 'Sin asignar'}</span></td>
                         <td class="text-success fw-bold">${p.estimacion_costo}</td>
                         <td class="text-center">
                             <div class="d-flex gap-1 justify-content-center">
-                                <a href="/ver-proyecto/${p.codigo_proyecto}" class="btn btn-sm btn-outline-info"><i class="bx bx-show"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-info" title="Ver detalle"
+                                    data-bs-toggle="modal" data-bs-target="#modalDetalleProyecto"
+                                    data-codigo="${p.codigo_proyecto}"
+                                    data-fecha="${p.fecha_planificacion}"
+                                    data-solicitante="${p.nombre_solicitante || '—'}"
+                                    data-tipo="${p.tipo_solicitud || '—'}"
+                                    data-descripcion="${p.descripcion_tecnica || '—'}"
+                                    data-problematica="${p.problematica || '—'}"
+                                    data-computos="${p.computos_metricos_texto || '—'}"
+                                    data-costo="${p.estimacion_costo || '0.00'}"
+                                    data-maquinaria="${p.nombre_maquinaria || 'PENDIENTE'}"
+                                    data-proyectista="${p.nombre_proyectista || 'Sin asignar'}">
+                                    <i class="bx bx-show"></i>
+                                </button>
                                 <a href="/editar-proyecto/${p.codigo_proyecto}" class="btn btn-sm btn-outline-warning"><i class="bx bx-edit"></i></a>
                                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmarEliminacion(this)" data-delete-url="/eliminar-proyecto/${p.codigo_proyecto}"><i class="bx bx-trash"></i></button>
                             </div>
@@ -245,11 +259,11 @@ function enviarFormulario(form) {
                           </button>
                         </div>
                     `;
+                    initComputosMetricos('computos_metricos_container');
                 }
                 
                 const maquinariaContainer = document.getElementById('maquinaria_container');
                 if (maquinariaContainer) {
-                    // Obtener las opciones del primer select antes de resetear
                     const firstSelect = maquinariaContainer.querySelector('.maquinaria_select');
                     let optionsHTML = '<option value="" selected disabled>Seleccione maquinaria...</option>';
                     if (firstSelect) {
@@ -269,9 +283,16 @@ function enviarFormulario(form) {
                           </button>
                         </div>
                     `;
-                    // Re-inicializar event listeners
                     if (typeof window.initMaquinaria === 'function') {
                         window.initMaquinaria('maquinaria_container');
+                    }
+                }
+                
+                const formRegistrarProyecto = document.getElementById('formRegistrarProyecto');
+                if (formRegistrarProyecto) {
+                    if (typeof ValidacionesComunes !== 'undefined') {
+                        ValidacionesComunes.initSelects(formRegistrarProyecto);
+                        ValidacionesComunes.initBotonesSubmit(formRegistrarProyecto, { textoGuardando: 'Registrando...' });
                     }
                 }
                 

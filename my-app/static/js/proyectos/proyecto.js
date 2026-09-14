@@ -5,7 +5,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const fechaPlan = document.getElementById("fecha_p") || document.getElementsByName("fecha_p")[0];
     const observaciones = document.getElementById("observaciones") || document.getElementsByName("observaciones")[0];
+    const moneda = document.getElementById("moneda_p");
     const estimacion = document.getElementById("estimacion_p") || document.getElementsByName("estimacion_p")[0];
+
+    function obtenerMontoEstimacion() {
+        if (!estimacion) return "";
+        return estimacion.value.trim().replace(/^(BS|USD)\s*/i, "");
+    }
+
+    function formatearEstimacion() {
+        if (!estimacion) return;
+
+        let valor = obtenerMontoEstimacion().replace(/\D/g, "");
+        if (valor === "") {
+            estimacion.value = "";
+            return;
+        }
+
+        let entero = parseInt(valor, 10);
+        if (isNaN(entero)) {
+            estimacion.value = "";
+            return;
+        }
+
+        let opciones = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+        estimacion.value = (entero / 100).toLocaleString("de-DE", opciones);
+        marcarValido(estimacion);
+    }
 
     function marcarInvalido(input, mensaje) {
         if (!input) return;
@@ -44,28 +70,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   
     if (estimacion) {
+        if (moneda) {
+            const monedaActual = estimacion.value.match(/^\s*(BS|USD)\b/i);
+            moneda.value = monedaActual ? monedaActual[1].toUpperCase() : 'BS';
+            estimacion.value = obtenerMontoEstimacion();
+        }
 
-        estimacion.addEventListener("input", function () {
-            let valor = estimacion.value.replace(/\D/g, ""); 
+        estimacion.addEventListener("input", formatearEstimacion);
 
-            if (valor === "") {
-                estimacion.value = "";
-                return;
-            }
-
-            let entero = parseInt(valor, 10);
-            if (isNaN(entero)) {
-                estimacion.value = "";
-                return;
-            }
-
-           
-            let opciones = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
-            estimacion.value = (entero / 100).toLocaleString("de-DE", opciones);
-            marcarValido(estimacion);
-        });
-
-      
         estimacion.addEventListener("focus", function() {
             if(estimacion.value === "0,00") {
                 estimacion.value = "";
@@ -169,13 +181,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const primerError = formulario.querySelector(".is-invalid");
             if (primerError) primerError.focus();
         } else {
-            
-            if (estimacion && estimacion.value.trim() !== "") {
-                estimacion.value = estimacion.value.replace(/\./g, "").replace(",", ".");
-            }
             const hiddenComputos = document.getElementById('computos_p');
             if (hiddenComputos) {
                 hiddenComputos.value = JSON.stringify(computosValidos);
+            }
+            if (moneda && estimacion) {
+                const monto = obtenerMontoEstimacion();
+                if (monto.trim()) {
+                    estimacion.value = `${moneda.value} ${monto}`;
+                }
             }
         }
     });

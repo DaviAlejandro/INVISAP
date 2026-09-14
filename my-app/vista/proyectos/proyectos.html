@@ -62,7 +62,7 @@
             <td class="fw-bold text-secondary">{{ proyecto.codigo_proyecto }}</td>
             <td>{{ proyecto.fecha_planificacion }}</td>
             <td class="text-uppercase" style="font-size: 0.85rem;">{{ proyecto.nombre_solicitante or '—' }}</td>
-            <td style="max-width: 250px; white-space: normal;">{{ proyecto.descripcion_tecnica or '—' }}</td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ proyecto.descripcion_tecnica or '—' }}</td>
             <td style="max-width: 200px; white-space: normal; font-size: 0.85rem;">{{ proyecto.computos_metricos_texto or '—' }}</td>
             <td style="max-width: 200px; white-space: normal; font-size: 0.85rem;">{{ proyecto.problematica or '—' }}</td>
             <td><span class="badge bg-dark">{{ proyecto.nombre_maquinaria or 'Sin asignar' }}</span></td>
@@ -177,8 +177,8 @@
             </div>
             <div class="col-md-12">
               <label for="observaciones" class="form-label fw-semibold text-secondary">Descripción Técnica</label>
-              <textarea class="form-control shadow-sm" name="observaciones" id="observaciones" rows="4" maxlength="512" placeholder="Descripción técnica del proyecto..." required></textarea>
-              <small class="text-muted"><span id="count_observaciones">0</span>/512</small>
+              <textarea class="form-control shadow-sm" name="observaciones" id="observaciones" rows="4" maxlength="2500" placeholder="Descripción técnica del proyecto..." required></textarea>
+              <small class="text-muted"><span id="count_observaciones">0</span>/2500</small>
             </div>
           </div>
       
@@ -215,7 +215,13 @@
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="estimacion_p" class="form-label fw-semibold text-secondary">Estimación de Costo</label>
-              <input type="text" class="form-control shadow-sm" name="estimacion_p" id="estimacion_p" maxlength="45" placeholder="Ej: 50.000,00" />
+              <div class="input-group shadow-sm">
+                <select class="form-select" name="moneda_p" id="moneda_p" style="max-width: 85px;" required>
+                  <option value="BS" selected>BS</option>
+                  <option value="USD">USD</option>
+                </select>
+                <input type="text" class="form-control border-start-0 bg-light shadow-sm" name="estimacion_p" id="estimacion_p" maxlength="45" placeholder="Ej: 50.000,00" />
+              </div>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold text-secondary">Maquinaria Requerida</label>
@@ -341,14 +347,15 @@
           <p class="mb-1 fw-bold text-secondary">Descripción Técnica:</p>
           <div class="p-2 bg-light border rounded"><span id="det_descripcion"></span></div>
         </div>
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p class="mb-1"><strong>Cómputos Métricos:</strong> <span id="det_computos"></span></p>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p class="mb-1"><strong>Cómputos Métricos:</strong></p>
+              <div id="det_computos_list" style="max-height: 150px; overflow-y: auto;"></div>
+            </div>
+            <div class="col-md-6">
+              <p class="mb-1"><strong>Estimación de Costo:</strong> <span class="text-success fw-bold" id="det_costo"></span></p>
+            </div>
           </div>
-          <div class="col-md-6">
-            <p class="mb-1"><strong>Estimación de Costo:</strong> <span class="text-success fw-bold" id="det_costo"></span></p>
-          </div>
-        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -638,7 +645,18 @@ if (modalDetalleProyecto) {
          document.getElementById('det_proyectista').textContent = button.getAttribute('data-proyectista');
         document.getElementById('det_problematica').textContent = button.getAttribute('data-problematica');
         document.getElementById('det_descripcion').textContent = button.getAttribute('data-descripcion');
-        document.getElementById('det_computos').textContent = button.getAttribute('data-computos');
+        const computosStr = button.getAttribute('data-computos');
+        const computosListEl = document.getElementById('det_computos_list');
+        if (computosListEl) {
+            if (!computosStr || computosStr === 'N/A' || computosStr.trim() === '') {
+                computosListEl.innerHTML = '<small class="text-muted">Sin computos</small>';
+            } else {
+                const items = computosStr.split(', ');
+                computosListEl.innerHTML = items.map(function(item) {
+                    return '<div class="small py-1 px-2" style="border-bottom: 1px solid #eee;">' + item + '</div>';
+                }).join('');
+            }
+        }
         document.getElementById('det_costo').textContent = button.getAttribute('data-costo');
     });
 }

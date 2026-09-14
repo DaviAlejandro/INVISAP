@@ -387,7 +387,7 @@ CREATE TABLE `prioridad` (
 CREATE TABLE `proyecto` (
   `codigo_proyecto` varchar(15) NOT NULL,
   `fecha_planificacion` datetime NOT NULL,
-  `descripcion_tecnica` varchar(200) NOT NULL,
+  `descripcion_tecnica` text NOT NULL,
   `computos_metricos` text NOT NULL,
   `estimacion_costo` varchar(45) NOT NULL,
   `proyecto_has_empleado` int DEFAULT NULL,

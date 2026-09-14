@@ -150,9 +150,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (primerError) primerError.focus();
             return false;
         } else {
-            if (estimacion && estimacion.value.trim() !== "") {
-                estimacion.value = estimacion.value.replace(/\./g, "").replace(",", ".");
-            }
             return true;
         }
     });

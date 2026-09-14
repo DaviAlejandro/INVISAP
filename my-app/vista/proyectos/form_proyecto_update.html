@@ -60,8 +60,8 @@
 
 <div class="mb-4">
               <label for="observaciones" class="form-label fw-bold text-secondary">Descripción Técnica</label>
-              <textarea class="form-control shadow-sm" name="observaciones" id="observaciones" rows="4" maxlength="512" required>{{ proyecto.descripcion_tecnica or '' }}</textarea>
-              <small class="text-muted"><span id="count_observaciones">0</span>/512</small>
+              <textarea class="form-control shadow-sm" name="observaciones" id="observaciones" rows="4" maxlength="2500" required>{{ proyecto.descripcion_tecnica or '' }}</textarea>
+              <small class="text-muted"><span id="count_observaciones">0</span>/2500</small>
             </div>
 
             <div class="row mb-4">
@@ -102,7 +102,13 @@
             <div class="row mb-4">
               <div class="col-md-6">
                 <label for="estimacion_p" class="form-label fw-bold text-secondary">Estimación de Costo</label>
-                <input type="text" class="form-control shadow-sm" name="estimacion_p" id="estimacion_p" value="{{ proyecto.estimacion_costo if proyecto.estimacion_costo else '' }}" placeholder="Ej: 50.000,00" />
+                <div class="input-group shadow-sm">
+                  <select class="form-select" name="moneda_p" id="moneda_p" style="max-width: 85px;" required>
+                    <option value="BS" {{ 'selected' if (proyecto.estimacion_costo or '').upper().startswith('BS') else '' }}>BS</option>
+                    <option value="USD" {{ 'selected' if (proyecto.estimacion_costo or '').upper().startswith('USD') else '' }}>USD</option>
+                  </select>
+                  <input type="text" class="form-control border-start-0 bg-light shadow-sm" name="estimacion_p" id="estimacion_p" maxlength="45" value="{{ proyecto.estimacion_costo if proyecto.estimacion_costo else '' }}" placeholder="Ej: 50.000,00" />
+                </div>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary">Maquinaria Requerida</label>

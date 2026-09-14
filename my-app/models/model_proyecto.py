@@ -67,6 +67,21 @@ class ProyectoModel(BaseModel):
                 partes.append(texto.strip())
         return ', '.join(partes) if partes else ''
 
+    def _asegurar_descripcion_tecnica(self, conexion):
+        cursor = None
+        try:
+            cursor = conexion.cursor()
+            cursor.execute("SHOW COLUMNS FROM proyecto LIKE 'descripcion_tecnica'")
+            columna = cursor.fetchone()
+            if columna and str(columna[1]).lower() != 'text':
+                cursor.execute("ALTER TABLE proyecto MODIFY COLUMN descripcion_tecnica TEXT NOT NULL")
+                conexion.commit()
+        except Exception as e:
+            print(f"Error al asegurar proyecto.descripcion_tecnica: {e}")
+        finally:
+            if cursor:
+                cursor.close()
+
     def validar_codigo_proyecto(self, codigo_proyecto):
         conexion = None
         try:
@@ -99,6 +114,7 @@ class ProyectoModel(BaseModel):
             
             conexion = connectionBD()
             cursor = conexion.cursor(dictionary=True)
+            self._asegurar_descripcion_tecnica(conexion)
             
             sql = """INSERT INTO proyecto 
           (codigo_proyecto, fecha_planificacion, descripcion_tecnica, 
@@ -118,7 +134,7 @@ class ProyectoModel(BaseModel):
             valores = (
                 codigo_proy, 
                 fecha_plan,
-                datos.get('observaciones', '')[:512], 
+                datos.get('observaciones', '')[:2500], 
                 self._serializar_computos_metricos(datos.get('computos_p', [])),
                 datos.get('estimacion_p', '')[:45],
                 id_proyectista
@@ -301,6 +317,7 @@ class ProyectoModel(BaseModel):
         try:
             conexion = connectionBD()
             cursor = conexion.cursor(dictionary=True)
+            self._asegurar_descripcion_tecnica(conexion)
             
             cursor.execute("SELECT fecha_planificacion FROM proyecto WHERE codigo_proyecto = %s", (codigo_proyecto_actual,))
             fila = cursor.fetchone()
@@ -327,7 +344,7 @@ class ProyectoModel(BaseModel):
             valores = (
                 codigo_nuevo,
                 fecha_plan,
-                descripcion[:512],
+                descripcion[:2500],
                 datos.get('computos_p', []) and self._serializar_computos_metricos(datos.get('computos_p', [])) or '',
                 datos.get('estimacion_p', '')[:45],
                 id_proyectista,

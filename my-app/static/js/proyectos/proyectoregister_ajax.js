@@ -37,7 +37,6 @@ document.getElementById('btnGuardarProyecto').addEventListener('click', function
     const fechaPlan = document.getElementById('fecha_p');
     const observaciones = document.getElementById('observaciones');
     const codigoProyecto = document.getElementById('Codigo_p');
-    const maquinaria = document.getElementById('maquinaria_p');
     const estimacion = document.getElementById('estimacion_p');
 
     let tieneErrores = false;
@@ -76,12 +75,27 @@ document.getElementById('btnGuardarProyecto').addEventListener('click', function
         codigoProyecto.classList.add('is-valid');
     }
 
-    if (!maquinaria || !maquinaria.value || maquinaria.value === '' || maquinaria.value === null) {
-        marcarInvalidoCustom(maquinaria, 'Debe seleccionar una maquinaria.');
+    // Validar maquinaria: al menos una seleccionada
+    const maquinariaContainer = document.getElementById('maquinaria_container');
+    const maquinariaSelects = maquinariaContainer ? maquinariaContainer.querySelectorAll('.maquinaria_select') : [];
+    let maquinariaValida = false;
+    maquinariaSelects.forEach(select => {
+        if (select.value && select.value.trim() !== '') {
+            maquinariaValida = true;
+        }
+    });
+    
+    if (!maquinariaValida) {
+        // Marcar el primer select como inválido
+        if (maquinariaSelects.length > 0) {
+            marcarInvalidoCustom(maquinariaSelects[0], 'Debe seleccionar al menos una maquinaria.');
+        }
         tieneErrores = true;
     } else {
-        maquinaria.classList.remove('is-invalid');
-        maquinaria.classList.add('is-valid');
+        if (maquinariaSelects.length > 0) {
+            maquinariaSelects[0].classList.remove('is-invalid');
+            maquinariaSelects[0].classList.add('is-valid');
+        }
     }
 
     const computosContainer = document.getElementById('computos_metricos_container');
@@ -225,12 +239,40 @@ function enviarFormulario(form) {
                             <option value="lt">lt</option>
                           </select>
                           <input type="text" class="form-control computos_opcion" name="computos_opcion_0" placeholder="Ej: asfalto" list="opciones_computos_list" required />
-                          <input type="number" class="form-control computos_costo" name="computos_costo_0" placeholder="Costo" style="max-width: 140px;" min="0" step="0.01" required />
+                          <input type="number" class="form-control computos_costo" name="computos_costo_0" placeholder="Cantidad" style="max-width: 140px;" min="0" step="0.01" required />
                           <button type="button" class="btn btn-outline-danger btn-eliminar-computo" style="display: none;">
                             <i class="bx bx-trash"></i>
                           </button>
                         </div>
                     `;
+                }
+                
+                const maquinariaContainer = document.getElementById('maquinaria_container');
+                if (maquinariaContainer) {
+                    // Obtener las opciones del primer select antes de resetear
+                    const firstSelect = maquinariaContainer.querySelector('.maquinaria_select');
+                    let optionsHTML = '<option value="" selected disabled>Seleccione maquinaria...</option>';
+                    if (firstSelect) {
+                        Array.from(firstSelect.options).forEach(opt => {
+                            if (opt.value) {
+                                optionsHTML += `<option value="${opt.value}">${opt.text}</option>`;
+                            }
+                        });
+                    }
+                    maquinariaContainer.innerHTML = `
+                        <div class="maquinaria_item input-group shadow-sm mb-2" data-index="0">
+                          <select class="form-select maquinaria_select" name="maquinaria_0" required>
+                            ${optionsHTML}
+                          </select>
+                          <button type="button" class="btn btn-outline-danger btn-eliminar-maquinaria" style="display: none;">
+                            <i class="bx bx-trash"></i>
+                          </button>
+                        </div>
+                    `;
+                    // Re-inicializar event listeners
+                    if (typeof window.initMaquinaria === 'function') {
+                        window.initMaquinaria('maquinaria_container');
+                    }
                 }
                 
                 actualizarContador(1);

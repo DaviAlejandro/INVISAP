@@ -106,6 +106,27 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+        // Validar maquinaria: al menos una seleccionada
+        const maquinariaContainer = document.getElementById('maquinaria_container');
+        const maquinariaSelects = maquinariaContainer ? maquinariaContainer.querySelectorAll('.maquinaria_select') : [];
+        let maquinariaValida = false;
+        maquinariaSelects.forEach(select => {
+            if (select.value && select.value.trim() !== '') {
+                maquinariaValida = true;
+            }
+        });
+        
+        if (!maquinariaValida) {
+            if (maquinariaSelects.length > 0) {
+                marcarInvalido(maquinariaSelects[0], 'Debe seleccionar al menos una maquinaria.');
+            }
+            tieneErrores = true;
+        } else {
+            if (maquinariaSelects.length > 0) {
+                marcarValido(maquinariaSelects[0]);
+            }
+        }
+
         const computosContainer = document.getElementById('computos_metricos_container');
         const computosItems = computosContainer ? computosContainer.querySelectorAll('.computos_metrico_item') : [];
         let computosValidos = [];

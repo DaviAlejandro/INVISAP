@@ -150,10 +150,11 @@ class ProyectoModel(BaseModel):
                 else:
                     raise Exception(f"No se encontraron los datos compuestos para la solicitud ID: {id_solicitud}")
 
-            id_maquinaria = datos.get('maquinaria_p')
-            if id_maquinaria and str(id_maquinaria).isdigit():
-                sql_maquinaria = "INSERT INTO proyecto_has_maquinaria (proyecto_codigo_proyecto, maquinaria_id_maquinaria) VALUES (%s, %s)"
-                cursor.execute(sql_maquinaria, (codigo_proy, int(id_maquinaria)))
+            # Procesar múltiples maquinarias (maquinaria_0, maquinaria_1, ...)
+            sql_maquinaria = "INSERT INTO proyecto_has_maquinaria (proyecto_codigo_proyecto, maquinaria_id_maquinaria) VALUES (%s, %s)"
+            for key, value in datos.items():
+                if key.startswith('maquinaria_') and value and str(value).isdigit():
+                    cursor.execute(sql_maquinaria, (codigo_proy, int(value)))
 
             conexion.commit()
             return cursor.rowcount
@@ -175,9 +176,12 @@ class ProyectoModel(BaseModel):
             sql = """SELECT 
                         p.codigo_proyecto, p.fecha_planificacion, p.descripcion_tecnica, 
                         p.computos_metricos, p.estimacion_costo, p.proyecto_has_empleado,
-                        m.nombre_maquinaria, m.id_maquinaria,
-                        s.id_solicitudes, s.tipo_solicitud, s.problematica,
-                        COALESCE(CONCAT(part.nombre, ' ', part.apellido), inst.razon_social, com.nombre_comunidad) as nombre_solicitante,
+                        GROUP_CONCAT(DISTINCT m.nombre_maquinaria SEPARATOR ', ') as nombre_maquinaria,
+                        GROUP_CONCAT(DISTINCT m.id_maquinaria SEPARATOR ',') as ids_maquinaria,
+                        GROUP_CONCAT(DISTINCT s.id_solicitudes SEPARATOR ',') as ids_solicitudes,
+                        GROUP_CONCAT(DISTINCT s.tipo_solicitud SEPARATOR ', ') as tipo_solicitud,
+                        GROUP_CONCAT(DISTINCT s.problematica SEPARATOR '; ') as problematica,
+                        GROUP_CONCAT(DISTINCT COALESCE(CONCAT(part.nombre, ' ', part.apellido), inst.razon_social, com.nombre_comunidad) SEPARATOR ', ') as nombre_solicitante,
                         COALESCE(e.nombre_empleado, 'Sin asignar') as nombre_proyectista
                      FROM proyecto p
                      LEFT JOIN proyecto_has_solicitudes phs ON p.codigo_proyecto = phs.proyecto_codigo_proyecto
@@ -190,6 +194,7 @@ class ProyectoModel(BaseModel):
                      LEFT JOIN maquinaria m ON phm.maquinaria_id_maquinaria = m.id_maquinaria 
                      LEFT JOIN empleados e ON p.proyecto_has_empleado = e.id_empleados
                      WHERE p.estado = 1
+                     GROUP BY p.codigo_proyecto
                      ORDER BY p.codigo_proyecto DESC"""
             cursor.execute(sql)
             proyectos = cursor.fetchall()
@@ -212,9 +217,12 @@ class ProyectoModel(BaseModel):
             sql = """SELECT 
                         p.codigo_proyecto, p.fecha_planificacion, p.descripcion_tecnica, 
                         p.computos_metricos, p.estimacion_costo, p.proyecto_has_empleado,
-                        m.nombre_maquinaria, m.id_maquinaria,
-                        s.id_solicitudes, s.tipo_solicitud, s.problematica,
-                        COALESCE(CONCAT(part.nombre, ' ', part.apellido), inst.razon_social, com.nombre_comunidad) as nombre_solicitante,
+                        GROUP_CONCAT(DISTINCT m.nombre_maquinaria SEPARATOR ', ') as nombre_maquinaria,
+                        GROUP_CONCAT(DISTINCT m.id_maquinaria SEPARATOR ',') as ids_maquinaria,
+                        GROUP_CONCAT(DISTINCT s.id_solicitudes SEPARATOR ',') as ids_solicitudes,
+                        GROUP_CONCAT(DISTINCT s.tipo_solicitud SEPARATOR ', ') as tipo_solicitud,
+                        GROUP_CONCAT(DISTINCT s.problematica SEPARATOR '; ') as problematica,
+                        GROUP_CONCAT(DISTINCT COALESCE(CONCAT(part.nombre, ' ', part.apellido), inst.razon_social, com.nombre_comunidad) SEPARATOR ', ') as nombre_solicitante,
                         COALESCE(e.nombre_empleado, 'Sin asignar') as nombre_proyectista
                      FROM proyecto p
                      LEFT JOIN proyecto_has_solicitudes phs ON p.codigo_proyecto = phs.proyecto_codigo_proyecto
@@ -226,7 +234,8 @@ class ProyectoModel(BaseModel):
                      LEFT JOIN proyecto_has_maquinaria phm ON p.codigo_proyecto = phm.proyecto_codigo_proyecto
                      LEFT JOIN maquinaria m ON phm.maquinaria_id_maquinaria = m.id_maquinaria 
                      LEFT JOIN empleados e ON p.proyecto_has_empleado = e.id_empleados
-                     WHERE p.codigo_proyecto = %s"""
+                     WHERE p.codigo_proyecto = %s
+                     GROUP BY p.codigo_proyecto"""
             cursor.execute(sql, (codigo_proyecto,))
             proyecto = cursor.fetchone()
             if proyecto:
@@ -349,18 +358,14 @@ class ProyectoModel(BaseModel):
                         WHERE proyecto_codigo_proyecto = %s
                     """, (codigo_nuevo, codigo_proyecto_actual))
 
-            id_maquinaria = datos.get('maquinaria_p')
-            if id_maquinaria and str(id_maquinaria).isdigit():
-                cursor.execute("DELETE FROM proyecto_has_maquinaria WHERE proyecto_codigo_proyecto = %s", (codigo_proyecto_actual,))
-                cursor.execute("INSERT INTO proyecto_has_maquinaria (proyecto_codigo_proyecto, maquinaria_id_maquinaria) VALUES (%s, %s)", 
-                             (codigo_nuevo, int(id_maquinaria)))
-            else:
-                if codigo_nuevo != codigo_proyecto_actual:
-                    cursor.execute("""
-                        UPDATE proyecto_has_maquinaria 
-                        SET proyecto_codigo_proyecto = %s 
-                        WHERE proyecto_codigo_proyecto = %s
-                    """, (codigo_nuevo, codigo_proyecto_actual))
+            # Procesar múltiples maquinarias (maquinaria_0, maquinaria_1, ...)
+            # Primero eliminar todas las maquinarias existentes del proyecto
+            cursor.execute("DELETE FROM proyecto_has_maquinaria WHERE proyecto_codigo_proyecto = %s", (codigo_proyecto_actual,))
+            # Luego insertar las nuevas
+            sql_maquinaria = "INSERT INTO proyecto_has_maquinaria (proyecto_codigo_proyecto, maquinaria_id_maquinaria) VALUES (%s, %s)"
+            for key, value in datos.items():
+                if key.startswith('maquinaria_') and value and str(value).isdigit():
+                    cursor.execute(sql_maquinaria, (codigo_nuevo, int(value)))
 
             conexion.commit()
 

@@ -218,13 +218,23 @@
               <input type="text" class="form-control shadow-sm" name="estimacion_p" id="estimacion_p" maxlength="45" placeholder="Ej: 50.000,00" />
             </div>
             <div class="col-md-6">
-              <label for="maquinaria_p" class="form-label fw-semibold text-secondary">Maquinaria Requerida</label>
-              <select class="form-select shadow-sm" name="maquinaria_p" id="maquinaria_p" required>
-                <option value="" selected disabled>Seleccione maquinaria...</option> 
-                {% for maquinaria in maquinarias %}
-                  <option value="{{ maquinaria.id_maquinaria }}">{{ maquinaria.nombre_maquinaria|upper }}</option>
-                {% endfor %}
-              </select>
+              <label class="form-label fw-semibold text-secondary">Maquinaria Requerida</label>
+              <div id="maquinaria_container">
+                <div class="maquinaria_item input-group shadow-sm mb-2" data-index="0">
+                  <select class="form-select maquinaria_select" name="maquinaria_0" required>
+                    <option value="" selected disabled>Seleccione maquinaria...</option>
+                    {% for maquinaria in maquinarias %}
+                      <option value="{{ maquinaria.id_maquinaria }}">{{ maquinaria.nombre_maquinaria|upper }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="button" class="btn btn-outline-danger btn-eliminar-maquinaria" style="display: none;">
+                    <i class="bx bx-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="btnAgregarMaquinaria">
+                <i class="bx bx-plus me-1"></i> Añadir Maquinaria
+              </button>
             </div>
           </div>
 
@@ -394,7 +404,7 @@
           <option value="lt">lt</option>
         </select>
         <input type="text" class="form-control computos_opcion" name="computos_opcion_${index}" placeholder="Ej: asfalto" list="opciones_computos_list" required />
-        <input type="number" class="form-control computos_costo" name="computos_costo_${index}" placeholder="Costo" style="max-width: 140px;" min="0" step="0.01" required />
+        <input type="number" class="form-control computos_costo" name="computos_costo_${index}" placeholder="Cantidad" style="max-width: 140px;" min="0" step="0.01" required />
         <button type="button" class="btn btn-outline-danger btn-eliminar-computo" style="display: none;">
           <i class="bx bx-trash"></i>
         </button>
@@ -429,6 +439,73 @@
   if (document.getElementById('computos_metricos_container')) {
     initComputosMetricos('computos_metricos_container');
   }
+</script>
+
+<script>
+  function initMaquinaria(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const btnAgregar = container.parentElement.querySelector('#btnAgregarMaquinaria');
+
+    function actualizarIndices() {
+      const items = container.querySelectorAll('.maquinaria_item');
+      items.forEach((item, index) => {
+        item.setAttribute('data-index', index);
+        const select = item.querySelector('.maquinaria_select');
+        const eliminar = item.querySelector('.btn-eliminar-maquinaria');
+        if (select) select.name = `maquinaria_${index}`;
+        if (eliminar) eliminar.style.display = items.length > 1 ? '' : 'none';
+      });
+    }
+
+    function crearItem(index) {
+      const div = document.createElement('div');
+      div.className = 'maquinaria_item input-group shadow-sm mb-2';
+      div.setAttribute('data-index', index);
+      div.innerHTML = `
+        <select class="form-select maquinaria_select" name="maquinaria_${index}" required>
+          <option value="" selected disabled>Seleccione maquinaria...</option>
+          {% for maquinaria in maquinarias %}
+            <option value="{{ maquinaria.id_maquinaria }}">{{ maquinaria.nombre_maquinaria|upper }}</option>
+          {% endfor %}
+        </select>
+        <button type="button" class="btn btn-outline-danger btn-eliminar-maquinaria" style="display: none;">
+          <i class="bx bx-trash"></i>
+        </button>
+      `;
+      return div;
+    }
+
+    if (btnAgregar) {
+      btnAgregar.addEventListener('click', function() {
+        const items = container.querySelectorAll('.maquinaria_item');
+        const nuevoIndex = items.length;
+        const nuevoItem = crearItem(nuevoIndex);
+        container.appendChild(nuevoItem);
+        actualizarIndices();
+        nuevoItem.querySelector('.maquinaria_select').focus();
+      });
+    }
+
+    container.addEventListener('click', function(e) {
+      const btnEliminar = e.target.closest('.btn-eliminar-maquinaria');
+      if (!btnEliminar) return;
+      const item = btnEliminar.closest('.maquinaria_item');
+      if (item && container.querySelectorAll('.maquinaria_item').length > 1) {
+        item.remove();
+        actualizarIndices();
+      }
+    });
+
+    actualizarIndices();
+  }
+
+  if (document.getElementById('maquinaria_container')) {
+    initMaquinaria('maquinaria_container');
+  }
+  // Hacer disponible globalmente para re-inicializar después de reset
+  window.initMaquinaria = initMaquinaria;
 </script>
 
 <script>

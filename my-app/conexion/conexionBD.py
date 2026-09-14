@@ -25,11 +25,10 @@ def get_db_config():
     return {
         'host': os.getenv('DB_HOST', 'localhost'),
         'user': os.getenv('DB_USER', 'root'),
-        'password': os.getenv('DB_PASSWORD', '1234'),
+        'password': os.getenv('DB_PASSWORD', ''),
         'database': os.getenv('DB_NAME', 'invilara'),
         'charset': 'utf8mb4',
-        'use_unicode': True,
-        'auth_plugin': _get_env('DB_AUTH_PLUGIN', 'mysql_native_password')
+        'use_unicode': True
     }
 
 def connectionBD():
@@ -55,23 +54,16 @@ def connectionBD_invilara():
     except Exception as e:
         print(f"Error en la conexión a la base de datos: {e}")
         return None
-        connection = connectionBD()
-        if connection.is_connected():
-            return connection
-    except Exception as e:
-        print(f"Error en la conexión a la base de datos: {e}")
-        return None
-    
+
 def connectionBD_seguridad():
     """Return a new MySQL connection. Reads configuration from env vars with sane defaults."""
     db_config = {
         'host': os.getenv('DB_HOST', 'localhost'),
         'user': os.getenv('DB_USER', 'root'),
-        'password': os.getenv('DB_PASSWORD', '1234'),
+        'password': os.getenv('DB_PASSWORD', ''),
         'database': os.getenv('DB_NAME_SEGURIDAD', 'invilara_seguridad'),
         'charset': 'utf8mb4',
-        'use_unicode': True,
-        'auth_plugin': _get_env('DB_AUTH_PLUGIN', 'mysql_native_password')
+        'use_unicode': True
     }
 
     try:

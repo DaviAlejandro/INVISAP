@@ -274,6 +274,37 @@
 {% endblock %}
 
 {% block customJS %}
+<script>
+  (function () {
+    var currentHash = window.location.hash;
+    var originalPushState = history.pushState;
+    var originalReplaceState = history.replaceState;
+    history.pushState = function () {
+      var args = Array.prototype.slice.call(arguments);
+      if (args.length > 0 && args[0] !== null && typeof args[0] === 'string' && args[0].indexOf('#') !== -1) {
+        args[0] = args[0].split('#')[0];
+      }
+      return originalPushState.apply(this, args);
+    };
+    history.replaceState = function () {
+      var args = Array.prototype.slice.call(arguments);
+      if (args.length > 0 && args[0] !== null && typeof args[0] === 'string' && args[0].indexOf('#') !== -1) {
+        args[0] = args[0].split('#')[0];
+      }
+      return originalReplaceState.apply(this, args);
+    };
+    window.addEventListener('hashchange', function () {
+      if (window.location.hash !== currentHash) {
+        history.replaceState(null, '', window.location.pathname + currentHash);
+      }
+    });
+    window.addEventListener('popstate', function () {
+      if (window.location.hash !== currentHash) {
+        history.replaceState(null, '', window.location.pathname + currentHash);
+      }
+    });
+  })();
+</script>
 <script src="{{ url_for('static', filename='js/tour/seguridad/tour.js') }}"></script>
 <script src="{{ url_for('static', filename='js/seguridad/seguridad.js') }}"></script>
 <script src="{{ url_for('static', filename='js/validaciones_comunes.js') }}"></script>

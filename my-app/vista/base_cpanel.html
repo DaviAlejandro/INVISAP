@@ -786,10 +786,43 @@
     </div>
 
     {% include 'home/js.html' %}
-    <script src="{{ url_for('static', filename='js/usuarios/usuarios.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/login/login.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/vendor/datatables/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/vendor/datatables/js/dataTables.bootstrap5.min.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/usuarios/usuarios.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/login/login.js') }}"></script>
+      <script src="{{ url_for('static', filename='assets/vendor/datatables/js/jquery.dataTables.min.js') }}"></script>
+      <script src="{{ url_for('static', filename='assets/vendor/datatables/js/dataTables.bootstrap5.min.js') }}"></script>
+      <script>
+        (function () {
+          var currentPath = window.location.pathname;
+          var OriginalPushState = history.pushState;
+          var OriginalReplaceState = history.replaceState;
+
+          history.pushState = function () {
+            var args = Array.prototype.slice.call(arguments);
+            if (args.length > 0 && args[0] !== null && args[0] !== currentPath) {
+              args[0] = currentPath;
+            }
+            return OriginalPushState.apply(this, args);
+          };
+          history.replaceState = function () {
+            var args = Array.prototype.slice.call(arguments);
+            if (args.length > 0 && args[0] !== null && args[0] !== currentPath) {
+              args[0] = currentPath;
+            }
+            return OriginalReplaceState.apply(this, args);
+          };
+
+          window.addEventListener('popstate', function (e) {
+            if (window.location.pathname !== currentPath) {
+              window.history.pushState(null, '', currentPath);
+            }
+            if (e.state !== null && window.location.pathname === currentPath) {
+              window.history.replaceState(null, '', currentPath);
+            }
+          });
+
+          window.__invisap_url_locked = true;
+        })();
+      </script>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         var logo = document.querySelector('.app-brand-logo img');

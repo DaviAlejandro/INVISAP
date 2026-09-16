@@ -189,3 +189,65 @@ body.dark-mode .text-heading {
     display: none;
   }
 }
+
+/* ---------- Tabla de Priorización (estilo Módulo de Prioridad) ---------- */
+.tabla-card-dashboard {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.dashboard-priorization-table .table thead th {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 14px 16px;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.dashboard-priorization-table .table tbody td {
+  padding: 0.95rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dashboard-priorization-table .table tbody tr.fila-alta td:first-child { border-left: 4px solid #dc3545; }
+.dashboard-priorization-table .table tbody tr.fila-media td:first-child { border-left: 4px solid #f1c40f; }
+.dashboard-priorization-table .table tbody tr.fila-baja td:first-child { border-left: 4px solid #2e7d32; }
+
+.dashboard-priorization-table .table tbody tr {
+  transition: all 0.2s ease;
+  animation: fadeInUp 0.35s ease both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-priorization-table .table tbody tr:hover {
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+}
+
+.badge-prio {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  align-self: flex-start;
+}
+
+.badge-prio-alta { background: #FCE8E6; color: #C5221F; }
+.badge-prio-media { background: #FEF7E0; color: #B06000; }
+.badge-prio-baja { background: #E6F4EA; color: #137333; }

@@ -111,6 +111,8 @@ app.register_blueprint(evidencia_bp)
 app.register_blueprint(informe_avance_bp)
 app.register_blueprint(obra_bp)
 
+"""Modulo de Solicitudes"""
+
 @home_bp.route('/registrar-solicitud', methods=['GET'])
 def viewFormSolicitud():
     if 'conectado' in session:
@@ -118,6 +120,892 @@ def viewFormSolicitud():
     else:
         flash('Primero debes iniciar sesión.', 'error')
         return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/api/solicitudes/crear', methods=['POST'])
+def api_crear_solicitud():
+    if 'conectado' not in session:
+        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
+
+    resultado = crear_solicitud(request.form, session)
+    if resultado.get('success'):
+        nuevo_id = resultado.get('id')
+        nombre_usr = session.get('name_surname') or session.get('nombre') or session.get('email_user') or ''
+        BitacoraService.registrar_accion(
+            session, 'Solicitudes', 'CREAR',
+            f'Solicitud #{nuevo_id} creada por {nombre_usr}'
+        )
+        return jsonify({'status': 'success', 'message': resultado.get('message', 'Solicitud creada'), 'id': nuevo_id}), 200
+    return jsonify({'status': 'error', 'message': resultado.get('message', 'No se pudo crear la solicitud')}), 400
+
+@home_bp.route('/api/solicitudes/<int:id_solicitud>', methods=['GET'])
+def api_obtener_solicitud(id_solicitud):
+    if 'conectado' not in session:
+        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
+
+    solicitud = obtener_solicitud_por_id(id_solicitud)
+    if solicitud:
+        return jsonify({'status': 'success', 'data': solicitud}), 200
+    return jsonify({'status': 'error', 'message': 'Solicitud no encontrada'}), 404
+
+@home_bp.route('/api/solicitudes/actualizar', methods=['PUT', 'POST'])
+def api_actualizar_solicitud():
+    if 'conectado' not in session:
+        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
+
+    datos = request.form if request.form else request.get_json(silent=True) or {}
+    id_solicitud = datos.get('id_solicitud') or datos.get('id')
+    if not id_solicitud:
+        return jsonify({'status': 'error', 'message': 'ID de solicitud requerido'}), 400
+
+    resultado = actualizar_solicitud(id_solicitud, datos, session)
+    if resultado.get('success'):
+        return jsonify({'status': 'success', 'message': resultado.get('message', 'Solicitud actualizada')}), 200
+    return jsonify({'status': 'error', 'message': resultado.get('message', 'No se pudo actualizar la solicitud')}), 400
+
+@home_bp.route('/api/solicitudes/<int:id_solicitud>/actualizar-estatus', methods=['POST'])
+def api_actualizar_estatus_solicitud(id_solicitud):
+    if 'conectado' not in session:
+        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
+
+    datos = request.get_json(silent=True) or {}
+    nuevo_estatus = datos.get('estatus', 'En Proceso')
+    
+    resultado = SolicitudModel.actualizar_estatus(id_solicitud, nuevo_estatus)
+    if resultado:
+        return jsonify({'success': True, 'message': 'Estado actualizado correctamente'}), 200
+    return jsonify({'success': False, 'message': 'No se pudo actualizar el estado'}), 400
+
+@home_bp.route('/api/solicitudes/eliminar/<int:id_solicitud>', methods=['DELETE'])
+def api_eliminar_solicitud(id_solicitud):
+    if 'conectado' not in session:
+        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
+
+    resultado = eliminar_solicitud(id_solicitud, session)
+    if isinstance(resultado, dict):
+        success = resultado.get('success')
+    else:
+        success = bool(resultado)
+
+    if success:
+        return jsonify({'status': 'success', 'message': resultado.get('message', 'Solicitud eliminada')}), 200
+    return jsonify({'status': 'error', 'message': resultado.get('message', 'No se pudo eliminar la solicitud')}), 400
+
+@home_bp.route('/form-registrar-solicitud', methods=['POST'])
+def formSolicitud():
+    if 'conectado' not in session:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+    resultado = {'success': False}
+    try:
+        resultado = crear_solicitud(request.form, session) or {'success': False}
+    except Exception as e:
+        print(f"[Router] Error al crear solicitud: {e}")
+        resultado = {'success': False}
+
+    if resultado.get('success'):
+        flash('Solicitud registrada exitosamente.', 'success')
+        return redirect(url_for('lista_solicitudes'))
+    else:
+        flash('La solicitud NO fue registrada. Verifique los datos ingresados.', 'error')
+        return redirect(url_for('home_bp.viewFormSolicitud'))
+
+@app.route('/lista-de-solicitudes', methods=['GET'])
+def lista_solicitudes():
+    if 'conectado' not in session:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+    solicitudes = obtener_solicitudes()
+    estadisticas = {}
+    try:
+        from models.model_solicitudes import SolicitudModel
+        estadisticas = SolicitudModel().obtener_estadisticas()
+    except Exception:
+        pass
+    return render_template(f'{PATH_URL}/lista_solicitudes.html',
+                           solicitudes=solicitudes, estadisticas=estadisticas)
+
+@app.route('/eliminar-solicitud/<int:id_solicitud>', methods=['GET'])
+def eliminar_solicitud_route(id_solicitud):
+    if 'conectado' not in session:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+    resultado = eliminar_solicitud(id_solicitud, session)
+    if isinstance(resultado, dict):
+        success = resultado.get('success')
+    else:
+        success = bool(resultado)
+
+    if success:
+        flash('Solicitud eliminada correctamente.', 'success')
+    else:
+        flash('Error al intentar eliminar la solicitud.', 'error')
+    return redirect(url_for('lista_solicitudes'))
+
+@app.route('/editar-solicitud/<int:id_solicitud>', methods=['GET'])
+def viewEditarSolicitud(id_solicitud):
+    if 'conectado' not in session:
+        return redirect(url_for('login_bp.inicio'))
+    solicitud = obtener_solicitud_por_id(id_solicitud)
+    if solicitud:
+        BitacoraService.registrar_accion(
+            session, 'Solicitudes', 'VER',
+            f'Accedió a editar Solicitud #{id_solicitud}'
+        )
+        return render_template(f'{PATH_URL}/editar_solicitud.html', solicitud=solicitud)
+    else:
+        flash('La solicitud no existe.', 'error')
+        return redirect(url_for('lista_solicitudes'))
+
+@app.route('/update-solicitud', methods=['POST'])
+def update_solicitud():
+    if 'conectado' not in session:
+        return redirect(url_for('login_bp.inicio'))
+    id_solicitud = request.form.get('id_solicitud')
+    resultado = actualizar_solicitud(id_solicitud, request.form, session)
+    if isinstance(resultado, dict):
+        success = resultado.get('success')
+    else:
+        success = bool(resultado)
+
+    if success:
+        flash('Solicitud actualizada correctamente.', 'success')
+    else:
+        flash('Error al actualizar la solicitud. Verifique los datos.', 'error')
+    return redirect(url_for('lista_solicitudes'))
+
+@app.route("/detalles-solicitud/", methods=['GET'])
+@app.route("/detalles-solicitud/<int:idSolicitud>", methods=['GET'])
+def detalleSolicitud(idSolicitud=None):
+    if 'conectado' not in session:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+    if idSolicitud is None:
+        return redirect(url_for('lista_solicitudes'))
+    detalle_solicitud = obtener_solicitud_por_id(idSolicitud)
+    if detalle_solicitud:
+        BitacoraService.registrar_accion(
+            session, 'Solicitudes', 'VER',
+            f'Detalles de Solicitud #{idSolicitud}'
+        )
+    return render_template(f'{PATH_URL}/detalles_solicitud.html',
+                           detalle_solicitud=detalle_solicitud or {})
+
+"""Modulo de Solicitudes - Fin"""
+
+"""Modulo de Gravedad"""
+
+@home_bp.route('/gestionar-gravedad', methods=['GET'])
+def viewFormGravedad():
+        return render_template(f'{PATH_URL_IA}/form_gestionar_gravedad.html')
+
+@home_bp.route('/api/gravedad/registrar', methods=['POST'])
+def api_registrar_gravedad():
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    data = request.get_json(silent=True) or request.form.to_dict()
+    return jsonify(registrar_gravedad_controller(data)), 200
+
+@home_bp.route('/api/gravedad/listar', methods=['GET'])
+def api_listar_gravedades():
+    if 'conectado' not in session:
+        return jsonify([]), 401
+    return jsonify(listar_gravedades_controller())
+
+@home_bp.route('/api/gravedad/obtener/<int:id_gravedad>', methods=['GET'])
+def api_obtener_gravedad(id_gravedad):
+    if 'conectado' not in session:
+        return jsonify(None), 401
+    return jsonify(obtener_gravedad_controller(id_gravedad) or None)
+
+@home_bp.route('/api/gravedad/actualizar/<int:id_gravedad>', methods=['PUT', 'POST'])
+def api_actualizar_gravedad(id_gravedad):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    data = request.get_json(silent=True) or request.form.to_dict()
+    return jsonify(actualizar_gravedad_controller(id_gravedad, data)), 200
+
+@home_bp.route('/api/gravedad/eliminar/<int:id_gravedad>', methods=['DELETE', 'POST'])
+def api_eliminar_gravedad(id_gravedad):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    return jsonify(eliminar_gravedad_controller(id_gravedad)), 200
+
+@home_bp.route('/api/gravedad/validar-nivel', methods=['GET'])
+def api_validar_nivel_gravedad():
+    if 'conectado' not in session:
+        return jsonify({'existe': False, 'error': 'Sesión no válida'}), 401
+    nivel = request.args.get('nivel', '').strip()
+    excluir = request.args.get('excluir', '').strip()
+    from models.model_gravedad import GravedadObraModel
+    existe = GravedadObraModel(nivel_gravedad=nivel).validar_nivel_existente(excluir)
+    return jsonify({'existe': bool(existe)})
+
+"""Modulo de Gravedad - Fin"""
+
+"""Modulo de Prioridad"""
+
+@home_bp.route('/gestionar-prioridad', methods=['GET'])
+def viewFormPrioridad():
+    if 'conectado' in session:
+        return render_template(f'{PATH_URL_IA}/form_gestionar_prioridad.html')
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/prioridad/detalle/<int:id_prioridad>', methods=['GET'])
+def viewDetallePrioridad(id_prioridad):
+    if 'conectado' not in session:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+    from controllers.controller_prioridad import ver_detalle_prioridad_controller
+    detalle = ver_detalle_prioridad_controller(id_prioridad) or {}
+    if not detalle.get('id_gestion_prioridad'):
+        flash('No se encontró la prioridad solicitada.', 'warning')
+    return render_template(
+        f'{PATH_URL_IA}/detalle_prioridad.html',
+        detalle=detalle,
+        id_prioridad=id_prioridad
+    )
+
+@home_bp.route('/api/prioridad/listar', methods=['GET'])
+def api_listar_prioridad():
+    if 'conectado' not in session:
+        return jsonify({'data': [], 'total': 0, 'page': 1, 'per_page': 10}), 401
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+    except ValueError:
+        page, per_page = 1, 10
+    q = (request.args.get('q') or '').strip()
+    riesgo = (request.args.get('riesgo') or 'ALL').strip().upper()
+    orden = (request.args.get('orden') or 'rango_asc').strip()
+    filas, total = PrioridadModel.listar_priorizadas(
+        page=page, per_page=per_page, q=q, riesgo=riesgo, orden=orden
+    )
+    return jsonify({'data': filas, 'total': total, 'page': page, 'per_page': per_page})
+
+@home_bp.route('/api/prioridad/obtener/<int:id_prioridad>', methods=['GET'])
+def api_obtener_prioridad(id_prioridad):
+    if 'conectado' not in session:
+        return jsonify(None), 401
+    return jsonify(PrioridadModel.obtener_por_id(id_prioridad) or None)
+
+@home_bp.route('/api/prioridad/actualizar/<int:id_prioridad>', methods=['PUT', 'POST'])
+def api_actualizar_prioridad(id_prioridad):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    from controllers.controller_prioridad import actualizar_prioridad_controller
+    data = request.get_json(silent=True) or request.form.to_dict()
+    resultado = actualizar_prioridad_controller(
+        id_prioridad=id_prioridad,
+        rango=data.get('rango_prioridad'),
+        justificacion=data.get('justificacion'),
+        estado=int(data.get('estado', 1)),
+        tipo_obra=data.get('tipo_obra'),
+        gravedad_sugerida=data.get('gravedad_sugerida'),
+        origen=data.get('origen'),
+    )
+    return jsonify(resultado)
+
+@home_bp.route('/prioridad/editar/<int:id_prioridad>', methods=['GET'])
+def viewEditarPrioridad(id_prioridad):
+    if 'conectado' not in session:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+    from controllers.controller_prioridad import ver_editar_prioridad_controller
+    detalle = ver_editar_prioridad_controller(id_prioridad) or {}
+    if not detalle.get('id_gestion_prioridad'):
+        flash('No se encontró la prioridad solicitada.', 'warning')
+        return redirect(url_for('home_bp.viewFormPrioridad'))
+    return render_template(
+        f'{PATH_URL_IA}/editar_prioridad.html',
+        detalle=detalle,
+        id_prioridad=id_prioridad
+    )
+
+@home_bp.route('/api/prioridad/eliminar/<int:id_prioridad>', methods=['DELETE', 'POST'])
+def api_eliminar_prioridad(id_prioridad):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    modelo = PrioridadModel(id_prioridad=id_prioridad)
+    if modelo.eliminar_logico():
+        BitacoraService.registrar_accion(
+            session, 'Prioridad', 'ELIMINAR',
+            f'Desactivó prioridad ID: {id_prioridad}'
+        )
+        return jsonify({'success': True, 'message': 'Prioridad desactivada.'})
+    return jsonify({'success': False, 'message': 'Error al desactivar.'})
+
+@home_bp.route('/api/prioridad/clasificar-ia/<int:id_solicitud>', methods=['POST'])
+def api_clasificar_ia(id_solicitud):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    responsable = session.get('name_surname', 'IA')
+    resultado = PrioridadModel.clasificar_nueva_solicitud(id_solicitud, responsable)
+    if resultado.get('success'):
+        BitacoraService.registrar_accion(
+            session, 'Prioridad', 'EDITAR',
+            f'IA clasificó la solicitud ID {id_solicitud} con prioridad {resultado["data"]["rango"]}'
+        )
+    return jsonify(resultado)
+
+@home_bp.route('/api/prioridad/solicitudes-ids', methods=['GET'])
+def api_solicitudes_ids():
+    if 'conectado' not in session:
+        return jsonify([]), 401
+    conexion = connectionBD()
+    try:
+        cursor = conexion.cursor()
+        cursor.execute("SELECT id_solicitudes FROM solicitudes WHERE estado = 1")
+        ids = [f[0] for f in cursor.fetchall()]
+        return jsonify(ids)
+    finally:
+        cursor.close()
+        conexion.close()
+
+@home_bp.route('/api/prioridad/clasificar-nueva/<int:id_solicitud>', methods=['POST'])
+def api_clasificar_nueva(id_solicitud):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    from controllers.controller_prioridad import clasificar_nueva_solicitud_controller
+    resultado = clasificar_nueva_solicitud_controller(id_solicitud)
+    return jsonify(resultado)
+
+@home_bp.route('/api/prioridad/procesar-pendientes-batch', methods=['POST'])
+def api_procesar_pendientes_batch():
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    from controllers.controller_prioridad import procesar_pendientes_batch_controller
+    resultado = procesar_pendientes_batch_controller()
+    return jsonify(resultado)
+
+@home_bp.route('/api/prioridad/procesar-todas-batch', methods=['POST'])
+def api_procesar_todas_batch():
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    from controllers.controller_prioridad import procesar_todas_batch_controller
+    resultado = procesar_todas_batch_controller()
+    return jsonify(resultado)
+
+"""Modulo de Prioridad - Fin"""
+
+"""Modulo de Proyectos"""
+
+@home_bp.route('/gestionar-proyectos', methods=['GET'])
+def viewFormProyectos():
+    if 'conectado' in session:
+       
+        proyectos, contadores = listar_proyectos_controller(session)
+        
+        
+        maquinarias = listar_maquinarias_controller()
+        solicitudes = obtener_solicitudes()  
+        
+        
+        return render_template(
+            f'{PATH_URL_PROY}/proyectos.html', 
+            proyectos=proyectos, 
+            maquinarias=maquinarias, 
+            solicitudes=solicitudes,
+            contadores=contadores
+        )
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/form-registrar-proyecto', methods=['POST'])
+def formRegistrarProyecto():
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no iniciada'}), 401
+    
+    resultado = registrar_proyecto_controller(request.form, session)
+    
+    if resultado.get('success'):
+        modelo = ProyectoModel()
+        nuevo_proyecto = modelo.obtener_proyecto_por_id(request.form.get('Codigo_p'))
+        
+        return jsonify({
+            'success': True, 
+            'message': resultado.get('message', 'Proyecto registrado correctamente'),
+            'data': nuevo_proyecto 
+        })
+    else:
+        return jsonify({'success': False, 'message': resultado.get('message', 'Error al procesar el registro')})
+
+@home_bp.route('/api/proyecto/validar-codigo/<string:codigo>', methods=['GET'])
+def api_validar_codigo_proyecto(codigo):
+    if 'conectado' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    modelo = ProyectoModel()
+    resultado = modelo.validar_codigo_proyecto(codigo)
+    return jsonify(resultado)
+
+@home_bp.route('/api/proyecto/detalle/<string:codigo>', methods=['GET'])
+def api_detalle_proyecto(codigo):
+    if 'conectado' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+
+    modelo = ProyectoModel()
+    detalle = modelo.obtener_detalle_proyecto_por_codigo(codigo)
+    if not detalle:
+        return jsonify({'error': 'Proyecto no encontrado'}), 404
+
+    return jsonify({
+        'status': 'success',
+        'data': {
+            'proyecto': detalle['proyecto'],
+            'solicitudes': detalle['solicitudes'],
+            'maquinaria': detalle['maquinaria']
+        }
+    })
+
+@home_bp.route('/editar-proyecto/<string:codigo_proyecto>', methods=['GET'])
+def viewEditarProyecto(codigo_proyecto):
+    if 'conectado' in session:
+        from models.model_proyecto import ProyectoModel
+        modelo = ProyectoModel()
+        proyecto = modelo.obtener_proyecto_por_id(codigo_proyecto)
+        maquinarias = listar_maquinarias_controller()
+        if proyecto:
+            return render_template(f'{PATH_URL_PROY}/form_proyecto_update.html', proyecto=proyecto, maquinarias=maquinarias)
+        else:
+            flash('El proyecto no existe.', 'error')
+            return redirect(url_for('home_bp.viewFormProyectos'))
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/actualizar-proyecto', methods=['POST'])
+def formActualizarProyecto():
+    if 'conectado' in session:
+        
+        from controllers.funciones_proyecto import actualizar_proyecto_controller
+        
+        codigo_proyecto_actual = request.form.get('codigo_proyecto_actual')
+
+        if actualizar_proyecto_controller(codigo_proyecto_actual, request.form, session):
+            flash('Proyecto actualizado satisfactoriamente.', 'success')
+        else:
+            flash('Error al actualizar el proyecto.', 'error')
+            
+        return redirect(url_for('home_bp.viewFormProyectos'))
+    return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/eliminar-proyecto/<string:codigo_proyecto>', methods=['GET'])
+def eliminarProyecto(codigo_proyecto):
+    if 'conectado' in session:
+        
+        from controllers.funciones_proyecto import eliminar_proyecto_controller
+        
+        
+        if eliminar_proyecto_controller(codigo_proyecto, session):
+            flash('Proyecto eliminado correctamente.', 'success')
+        else:
+            flash('Error al intentar eliminar el proyecto.', 'error')
+            
+        return redirect(url_for('home_bp.viewFormProyectos'))
+    return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/api/obtener-solicitudes-json', methods=['GET'])
+def api_obtener_solicitudes_json():
+    if 'conectado' in session:
+        return jsonify(obtener_solicitudes())
+    else:
+        return jsonify([]), 401
+
+@home_bp.route('/api/obtener-solicitudes-pendientes-json', methods=['GET'])
+def api_obtener_solicitudes_pendientes_json():
+    if 'conectado' in session:
+        return jsonify(obtener_solicitudes_pendientes())
+    else:
+        return jsonify([]), 401
+
+"""Modulo de Proyectos - Fin"""
+
+"""Modulo de Maquinaria"""
+
+@home_bp.route('/registrar-maquinaria', methods=['GET'])
+@home_bp.route('/api/maquinaria/listar', methods=['GET'])
+def api_listar_maquinarias():
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        maquinarias = listar_maquinarias_controller(page, per_page)
+        total = contar_maquinarias_controller()
+        total_pages = (total + per_page - 1) // per_page
+        return jsonify({'success': True, 'data': maquinarias, 'total': total, 'page': page, 'total_pages': total_pages})
+    except Exception as e:
+        print(f"Error en api_listar_maquinarias: {e}")
+        return jsonify({'success': False, 'message': 'Error al listar maquinarias'})
+
+@home_bp.route('/maquinaria', methods=['GET'])
+def viewFormMaquinaria():
+    if 'conectado' in session:
+        maquinarias = listar_maquinarias_controller(1, 1000)
+        return render_template(f'{PATH_URL_PROY}/form_maquinaria.html', maquinarias=maquinarias)
+    else:
+        flash('primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/form-registrar-maquinaria', methods=['POST'])
+def formRegistrarMaquinaria():
+    if 'conectado' in session:
+        if registrar_maquinaria_controller(request.form):
+            flash('Maquinaria registrada con éxito.', 'success')
+        else:
+            flash('Error al intentar registrar la maquinaria. Verifique los datos.', 'error')
+        return redirect(url_for('home_bp.viewFormMaquinaria'))
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/editar-maquinaria/<int:id_maquinaria>', methods=['GET'])
+def viewEditarMaquinaria(id_maquinaria):
+    if 'conectado' in session:
+     
+        maquinaria = obtener_maquinaria_controller(id_maquinaria)
+        if maquinaria:
+            return render_template(f'{PATH_URL_PROY}/form_maquinaria-update.html', maquinaria=maquinaria)
+        else:
+            flash('La maquinaria no existe.', 'error')
+            return redirect(url_for('home_bp.viewFormMaquinaria'))
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/actualizar-maquinaria', methods=['POST'])
+def formActualizarMaquinaria():
+    if 'conectado' in session:
+        id_maquinaria = request.form.get('id_maquinaria')
+        if actualizar_maquinaria_controller(id_maquinaria, request.form):
+            flash('Maquinaria actualizada con éxito.', 'success')
+        else:
+            flash('Error al intentar actualizar la maquinaria.', 'error')
+        return redirect(url_for('home_bp.viewFormMaquinaria'))
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/eliminar-maquinaria/<int:id_maquinaria>', methods=['GET'])
+def eliminarMaquinaria(id_maquinaria):
+    if 'conectado' in session:
+        res = eliminar_maquinaria_controller(id_maquinaria)
+        if res == "utilizada":
+            flash('No se puede eliminar: Esta maquinaria está asignada a uno o más proyectos.', 'warning')
+        elif res:
+            flash('Maquinaria eliminada correctamente.', 'success')
+        else:
+            flash('Error al intentar eliminar la maquinaria.', 'error')
+        return redirect(url_for('home_bp.viewFormMaquinaria'))
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@home_bp.route('/api/maquinaria/crear', methods=['POST'])
+def api_crear_maquinaria():
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+
+    try:
+        resultado = registrar_maquinaria_controller(request.form)
+        if resultado.get('success'):
+            return jsonify({'success': True, 'message': resultado.get('message', 'Maquinaria registrada correctamente'), 'id': resultado.get('id')})
+        return jsonify({'success': False, 'message': resultado.get('message', 'No se pudo registrar')})
+    except Exception as e:
+        print(f"Error en api_crear_maquinaria: {e}")
+        return jsonify({'success': False, 'message': 'Error interno del servidor'})
+
+@home_bp.route('/api/maquinaria/<int:id_maquinaria>/eliminar', methods=['DELETE'])
+def api_eliminar_maquinaria(id_maquinaria):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+
+    res = eliminar_maquinaria_controller(id_maquinaria)
+    if res == "utilizada":
+        return jsonify({'success': False, 'message': 'No se puede eliminar: Esta maquinaria está asignada a uno o más proyectos.'}), 400
+    elif res == "eliminada":
+        return jsonify({'success': True, 'message': 'Maquinaria eliminada correctamente'}), 200
+    return jsonify({'success': False, 'message': 'Error al eliminar la maquinaria'}), 400
+
+@home_bp.route('/api/maquinaria/eliminadas', methods=['GET'])
+def api_maquinarias_eliminadas():
+    if 'conectado' not in session:
+        return jsonify([]), 401
+    
+    try:
+        resultado = listar_maquinarias_eliminadas_controller()
+        return jsonify(resultado)
+    except Exception as e:
+        print(f"Error en api_maquinarias_eliminadas: {e}")
+        return jsonify([])
+
+@home_bp.route('/api/maquinaria/<int:id_maquinaria>/restaurar', methods=['POST'])
+def api_restaurar_maquinaria(id_maquinaria):
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+
+    resultado = restaurar_maquinaria_controller(id_maquinaria)
+    if resultado.get('success'):
+        return jsonify({'success': True, 'message': resultado.get('message')}), 200
+    return jsonify({'success': False, 'message': resultado.get('message', 'Error al restaurar')}), 400
+
+"""Modulo de Maquinaria - Fin"""
+
+"""Modulo de Contratacion"""
+
+@contrataciones_bp.route('/form-contratacion', methods=['GET'])
+def viewFormContratacion():
+    if 'conectado' in session:
+        return render_template('contrataciones/form_contratacion.html')
+    return redirect(url_for('login_bp.inicio'))
+
+@contrataciones_bp.route('/contrataciones', methods=['GET'])
+def gestionar_contrataciones():
+    if 'conectado' in session:
+        modelo = ContratacionModel()
+        lista = modelo.obtener_todas_las_contrataciones()
+        return render_template('contratacion/form_contratacion.html', contrataciones=lista)
+    return redirect(url_for('login_bp.inicio'))
+
+@contrataciones_bp.route('/editar-contratacion/<int:id>', methods=['GET'])
+def vista_editar(id):
+    if 'conectado' in session:
+        modelo = ContratacionModel()
+        contratacion_data = modelo.obtener_contratacion_por_id(id)
+        
+        if contratacion_data:
+            campos_fecha = ['fecha_inicio_procedimiento', 'fecha_adjudicacion', 'fecha_registro']
+            for campo in campos_fecha:
+                if contratacion_data.get(campo):
+                    if hasattr(contratacion_data[campo], 'strftime'):
+                        contratacion_data[campo] = contratacion_data[campo].strftime('%Y-%m-%d')
+                    else:
+                        contratacion_data[campo] = str(contratacion_data[campo])[:10]
+            
+            return render_template('contratacion/form_contratacionM.html', contratacion=contratacion_data)
+        
+        flash('Contratación no encontrada o ha sido eliminada.', 'error')
+        return redirect(url_for('contrataciones_bp.gestionar_contrataciones'))
+    return redirect(url_for('login_bp.inicio'))
+
+@contrataciones_bp.route('/api/obtener-empresas-json', methods=['GET'])
+def obtener_empresas_json():
+    if 'conectado' in session:
+        modelo = ContratacionModel()
+        empresas = modelo.obtener_empresas()
+        return jsonify(empresas)
+    return jsonify([]), 401
+
+@contrataciones_bp.route('/registrar-contratacion', methods=['POST'])
+def procesar_registro():
+    if 'conectado' in session:
+        modelo = ContratacionModel()
+        exito, mensaje = modelo.registrar_contrataciones(request.form)
+        
+        if exito:
+            return jsonify({'status': 'success', 'message': mensaje})
+        return jsonify({'status': 'error', 'message': mensaje})
+            
+    return jsonify({'status': 'error', 'message': 'Sesión expirada.'}), 401
+
+@contrataciones_bp.route('/procesar-actualizacion', methods=['POST'])
+def procesar_actualizacion():
+    if 'conectado' in session:
+        modelo = ContratacionModel()
+        
+        exito, mensaje = modelo.actualizar_contratacion(request.form) 
+        
+        if exito:
+            return jsonify({
+                'status': 'success', 
+                'message': mensaje,
+                'redirect': url_for('contrataciones_bp.gestionar_contrataciones')
+            })
+        return jsonify({'status': 'error', 'message': mensaje})
+            
+    return jsonify({'status': 'error', 'message': 'Sesión expirada.'}), 401
+
+@contrataciones_bp.route('/eliminar-contratacion/<int:id>', methods=['POST'])
+def eliminar_contratacion(id):
+    if 'conectado' in session:
+        modelo = ContratacionModel()
+        if modelo.eliminar_contratacion(id):
+            return jsonify({'exito': True, 'mensaje': 'Contratación eliminada correctamente.'})
+        return jsonify({'exito': False, 'mensaje': 'Error al intentar eliminar el registro.'})
+            
+    return jsonify({'exito': False, 'mensaje': 'Sesión expirada.'}), 401
+
+"""Modulo de Contratacion - Fin"""
+
+"""Modulo de Empresas"""
+
+@home_bp.route('/registrar-empresas', methods=['GET'])
+def viewFormEmpresa():
+    if 'conectado' in session:
+        datos_formulario = session.pop('form_empresa', None)
+        
+        from models.model_empresas import EmpresaModel
+        modelo = EmpresaModel()
+        
+        return render_template(f'{PATH_URLE}/form_empresa.html', datos_form=datos_formulario)
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@app.route('/form-registrar-empresas', methods=['POST'])
+def procesar_registro():
+    if 'conectado' not in session:
+        return jsonify({'exito': False, 'mensaje': 'Debes iniciar sesión.', 'categoria': 'error'}), 401
+    
+    from controllers.controller_empresa import procesar_registro_empresa
+    
+    exito, mensaje, categoria = procesar_registro_empresa(request.form)
+    
+    return jsonify({
+        'exito': exito,
+        'mensaje': mensaje,
+        'categoria': categoria
+    })
+
+@app.route('/lista-empresas', methods=['GET'])
+def lista_empresas():
+    if 'conectado' in session:
+        from controllers.controller_empresa import obtener_todas_las_empresas
+        return render_template(f'{PATH_URLE}/lista_empresas.html', empresas=obtener_todas_las_empresas())
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@app.route('/edi-empresas/<string:rif>', methods=['GET'])
+def viewEditarEmpresa(rif):
+    if 'conectado' in session:
+        from controllers.controller_empresa import obtener_empresa_por_rif
+        from models.model_empresas import EmpresaModel
+        
+        empresa = obtener_empresa_por_rif(rif)
+        
+        if empresa:
+            return render_template(f'{PATH_URLE}/edi_empresas.html', empresa=empresa)
+        else:
+            flash('La empresa no existe.', 'error')
+            return redirect(url_for('lista_empresas'))
+    return redirect(url_for('login_bp.inicio'))
+
+@app.route('/update-empresa', methods=['POST'])
+def update_empresa():
+    from controllers.controller_empresa import update_empresa
+    
+    if update_empresa(request.form):
+        return jsonify({'exito': True, 'mensaje': 'Empresa actualizada correctamente.'})
+    else:
+        return jsonify({'exito': False, 'mensaje': 'Error al actualizar la empresa.', 'categoria': 'error'})
+
+@app.route('/eliminar-empresa/<string:rif>', methods=['GET'])
+def eliminar_empresa(rif):
+    if 'conectado' in session:
+        from controllers.controller_empresa import eliminar_empresa_por_rif
+        
+        if eliminar_empresa_por_rif(rif):
+            return jsonify({'exito': True, 'mensaje': 'Empresa eliminada correctamente.'})
+        else:
+            return jsonify({'exito': False, 'mensaje': 'Error al intentar eliminar la empresa.', 'categoria': 'error'})
+    else:
+        return jsonify({'exito': False, 'mensaje': 'Debes iniciar sesión.', 'categoria': 'error'})
+
+@app.route('/marcar-cumple-requisitos/<string:rif>', methods=['POST'])
+def marcar_cumple_requisitos(rif):
+    if 'conectado' in session:
+        from controllers.controller_empresa import marcar_cumple_requisitos
+        valor = request.form.get('valor', '1')
+        valor_int = 1 if valor in ('1', 'true', 'True', True) else 0
+        if marcar_cumple_requisitos(rif, valor_int):
+            return jsonify({'exito': True, 'mensaje': 'Cumplimiento de requisitos legales actualizado.', 'valor': valor_int})
+        return jsonify({'exito': False, 'mensaje': 'Error al actualizar el estado de la empresa.'})
+    return jsonify({'exito': False, 'mensaje': 'Debes iniciar sesión.', 'categoria': 'error'})
+
+"""Modulo de Empresas - Fin"""
+
+"""Modulo de Obras"""
+"""Modulo de Obras - Fin"""
+
+"""Modulo de Empleados"""
+
+@app.route('/registrar-empleado', methods=['GET'])
+def viewFormRegistrarEmpleados():
+    if 'conectado' in session:
+        return render_template(f'{PATH_URL_REG_EMPLEADOS}/form_empleado.html')
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@app.route('/empleados', methods=['GET'])
+def viewFormListarEmpleados():
+    if 'conectado' in session:
+        resp_empleadosBD = sql_lista_empleadosBD()
+        return render_template(f'{PATH_URL_LIST_EMPLEADOS}/empleados.html', resp_empleadosBD=resp_empleadosBD)
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+@app.route("/buscando-empleado", methods=['POST'])
+def viewBuscarEmpleadoBD():
+    resultadoBusqueda = buscarEmpleadoBD(request.json['busqueda'])
+    if resultadoBusqueda:
+        # CORRECCIÓN: Se cambió de PATH_URL a PATH_URL_LIST_EMPLEADOS
+        return render_template(f'{PATH_URL_LIST_EMPLEADOS}/resultado_busqueda_empleado.html', dataBusqueda=resultadoBusqueda)
+    else:
+        return jsonify({'fin': 0})
+
+@app.route("/editar-empleado/<int:id>", methods=['GET'])
+def viewEditarEmpleado(id):
+    if 'conectado' in session:
+        respuestaEmpleado = buscarEmpleadoUnico(id)
+        if respuestaEmpleado:
+            # CORRECCIÓN: Se cambió de PATH_URL a PATH_URL_LIST_EMPLEADOS
+            return render_template(f'{PATH_URL_LIST_EMPLEADOS}/form_empleado_update.html', empleado=respuestaEmpleado)
+        else:
+            flash('El empleado no existe.', 'error')
+            return redirect(url_for('login_bp.inicio'))
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+"""Modulo de Empleados - Fin"""
+
+"""Modulo de Inspecciones"""
+
+@home_bp.route('/inspectores', methods=['GET'])
+def viewFormInspectores():
+    if 'conectado' in session:
+        return render_template('placeholder.html', title='Inspectores', message='Esta página está en desarrollo.', note='Contacto al administrador para habilitar esta función.')
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+"""Modulo de Inspecciones - Fin"""
+
+"""Modulo de Evidencias"""
+"""Modulo de Evidencias - Fin"""
+
+"""Modulo de Informes"""
+
+@home_bp.route('/inf_avance_obra', methods=['GET'])
+def viewFormInforme_avan_obras():
+    if 'conectado' in session:
+        return render_template(f'{PATH_URL_INF}/inf_avance_obra.html')
+    else:
+        flash('Primero debes iniciar sesión.', 'error')
+        return redirect(url_for('login_bp.inicio'))
+
+"""Modulo de Informes - Fin"""
+
+"""Modulo de Publicaciones"""
 
 @home_bp.route('/registrar-publicaciones', methods=['GET'])
 def viewFormPublicaciones():
@@ -262,7 +1150,7 @@ def formActualizarPublicacion():
         flash(f'Error al actualizar: {str(e)}', 'error')
 
     return redirect(url_for('home_bp.viewFormPublicaciones'))
-    
+
 @home_bp.route('/eliminar-publicacion/<int:id_publicacion>', methods=['GET'])
 def eliminarPublicacion(id_publicacion):
     """Maneja la eliminación lógica desde enlaces GET."""
@@ -338,193 +1226,156 @@ def viewDetallesPublicacion(id_publicacion=None):
                            detalle_publicacion=detalle_publicacion or {},
                            informe_evidencias=informe_evidencias)
 
-@home_bp.route('/administrar-respaldos', methods=['GET'])
-def viewFormRespaldos():
-    return redirect(url_for('respaldo_bp.listar_respaldos_view'))
+"""Modulo de Publicaciones - Fin"""
 
-@home_bp.route('/registrar-maquinaria', methods=['GET'])
-@home_bp.route('/api/maquinaria/listar', methods=['GET'])
-def api_listar_maquinarias():
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+"""Modulo de Reportes"""
 
-    try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        maquinarias = listar_maquinarias_controller(page, per_page)
-        total = contar_maquinarias_controller()
-        total_pages = (total + per_page - 1) // per_page
-        return jsonify({'success': True, 'data': maquinarias, 'total': total, 'page': page, 'total_pages': total_pages})
-    except Exception as e:
-        print(f"Error en api_listar_maquinarias: {e}")
-        return jsonify({'success': False, 'message': 'Error al listar maquinarias'})
-
-@home_bp.route('/maquinaria', methods=['GET'])
-def viewFormMaquinaria():
+@home_bp.route('/reportes/reporte-excel', methods=['GET'])
+def viewFormReportesExcel():
     if 'conectado' in session:
-        maquinarias = listar_maquinarias_controller(1, 1000)
-        return render_template(f'{PATH_URL_PROY}/form_maquinaria.html', maquinarias=maquinarias)
-    else:
-        flash('primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))    
-
-@home_bp.route('/form-registrar-maquinaria', methods=['POST'])
-def formRegistrarMaquinaria():
-    if 'conectado' in session:
-        if registrar_maquinaria_controller(request.form):
-            flash('Maquinaria registrada con éxito.', 'success')
-        else:
-            flash('Error al intentar registrar la maquinaria. Verifique los datos.', 'error')
-        return redirect(url_for('home_bp.viewFormMaquinaria'))
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))    
-
-@home_bp.route('/editar-maquinaria/<int:id_maquinaria>', methods=['GET'])
-def viewEditarMaquinaria(id_maquinaria):
-    if 'conectado' in session:
-     
-        maquinaria = obtener_maquinaria_controller(id_maquinaria)
-        if maquinaria:
-            return render_template(f'{PATH_URL_PROY}/form_maquinaria-update.html', maquinaria=maquinaria)
-        else:
-            flash('La maquinaria no existe.', 'error')
-            return redirect(url_for('home_bp.viewFormMaquinaria'))
+        return render_template(f'{PATH_URL_REPORTE_EXCEL}/reporteExcel.html')
     else:
         flash('Primero debes iniciar sesión.', 'error')
         return redirect(url_for('login_bp.inicio'))
 
-@home_bp.route('/actualizar-maquinaria', methods=['POST'])
-def formActualizarMaquinaria():
+@home_bp.route('/reportes/reporte-pdf', methods=['GET'])
+def viewFormReportesPDF():
     if 'conectado' in session:
-        id_maquinaria = request.form.get('id_maquinaria')
-        if actualizar_maquinaria_controller(id_maquinaria, request.form):
-            flash('Maquinaria actualizada con éxito.', 'success')
-        else:
-            flash('Error al intentar actualizar la maquinaria.', 'error')
-        return redirect(url_for('home_bp.viewFormMaquinaria'))
+        return render_template(f'{PATH_URL_REPORTE_PDF}/reportePDF.html')
     else:
         flash('Primero debes iniciar sesión.', 'error')
         return redirect(url_for('login_bp.inicio'))
 
-@home_bp.route('/eliminar-maquinaria/<int:id_maquinaria>', methods=['GET'])
-def eliminarMaquinaria(id_maquinaria):
+@home_bp.route('/reportes/reporte-estadistico', methods=['GET'])
+def viewFormReportesEstadisticos():
     if 'conectado' in session:
-        res = eliminar_maquinaria_controller(id_maquinaria)
-        if res == "utilizada":
-            flash('No se puede eliminar: Esta maquinaria está asignada a uno o más proyectos.', 'warning')
-        elif res:
-            flash('Maquinaria eliminada correctamente.', 'success')
-        else:
-            flash('Error al intentar eliminar la maquinaria.', 'error')
-        return redirect(url_for('home_bp.viewFormMaquinaria'))
+        return render_template(f'{PATH_URL_REPORTE_ESTADISTICO}/reporteEstadistico.html')
     else:
         flash('Primero debes iniciar sesión.', 'error')
         return redirect(url_for('login_bp.inicio'))
 
-@home_bp.route('/api/maquinaria/crear', methods=['POST'])
-def api_crear_maquinaria():
+@app.route('/api/dashboard/grafico-tipos', methods=['GET'])
+def api_dashboard_grafico_tipos():
     if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-
-    try:
-        resultado = registrar_maquinaria_controller(request.form)
-        if resultado.get('success'):
-            return jsonify({'success': True, 'message': resultado.get('message', 'Maquinaria registrada correctamente'), 'id': resultado.get('id')})
-        return jsonify({'success': False, 'message': resultado.get('message', 'No se pudo registrar')})
-    except Exception as e:
-        print(f"Error en api_crear_maquinaria: {e}")
-        return jsonify({'success': False, 'message': 'Error interno del servidor'})
-
-@home_bp.route('/api/maquinaria/<int:id_maquinaria>/eliminar', methods=['DELETE'])
-def api_eliminar_maquinaria(id_maquinaria):
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-
-    res = eliminar_maquinaria_controller(id_maquinaria)
-    if res == "utilizada":
-        return jsonify({'success': False, 'message': 'No se puede eliminar: Esta maquinaria está asignada a uno o más proyectos.'}), 400
-    elif res == "eliminada":
-        return jsonify({'success': True, 'message': 'Maquinaria eliminada correctamente'}), 200
-    return jsonify({'success': False, 'message': 'Error al eliminar la maquinaria'}), 400
-
-@home_bp.route('/api/maquinaria/eliminadas', methods=['GET'])
-def api_maquinarias_eliminadas():
-    if 'conectado' not in session:
-        return jsonify([]), 401
+        return Response('No autorizado', status=401)
+    
+    cache_key = 'dashboard:grafico-tipos'
+    cached = _get_cached_chart(cache_key)
+    if cached:
+        return Response(cached, mimetype='image/png')
+    
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from io import BytesIO
     
     try:
-        resultado = listar_maquinarias_eliminadas_controller()
-        return jsonify(resultado)
-    except Exception as e:
-        print(f"Error en api_maquinarias_eliminadas: {e}")
-        return jsonify([])
+        datos = SolicitudModel.obtener_estadisticas_por_tipo()
+    except Exception:
+        datos = {}
+    
+    labels = list(datos.keys()) if datos else ['Sin datos']
+    valores = [int(v) for v in datos.values()] if datos else [0]
+    
+    buffer = BytesIO()
+    fig, ax = plt.subplots(figsize=(6, 3))
+    colores = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#20c997']
+    ax.bar(labels, valores, color=colores[:len(labels)])
+    ax.set_title('Solicitudes por Tipo')
+    ax.set_ylabel('Cantidad')
+    ax.set_xlabel('Tipo')
+    fig.tight_layout()
+    fig.savefig(buffer, format='png', dpi=100)
+    buffer.seek(0)
+    plt.close(fig)
+    png_data = buffer.read()
+    _set_cached_chart(cache_key, png_data)
+    return Response(png_data, mimetype='image/png')
 
-@home_bp.route('/api/maquinaria/<int:id_maquinaria>/restaurar', methods=['POST'])
-def api_restaurar_maquinaria(id_maquinaria):
+@app.route('/api/dashboard/grafico-estatus', methods=['GET'])
+def api_dashboard_grafico_estatus():
     if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+        return Response('No autorizado', status=401)
+    
+    cache_key = 'dashboard:grafico-estatus'
+    cached = _get_cached_chart(cache_key)
+    if cached:
+        return Response(cached, mimetype='image/png')
+    
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from io import BytesIO
+    
+    try:
+        datos = SolicitudModel.obtener_estadisticas()
+    except Exception:
+        datos = {}
+    
+    labels = list(datos.keys()) if datos else ['Sin datos']
+    valores = [int(v) for v in datos.values()] if datos else [0]
+    
+    buffer = BytesIO()
+    fig, ax = plt.subplots(figsize=(5, 3))
+    colores = ['#ffc107', '#0dcaf0', '#198754', '#6f42c1', '#dc3545']
+    wedges, texts, autotexts = ax.pie(valores, labels=labels, autopct='%1.1f%%', colors=colores[:len(labels)], startangle=90)
+    ax.set_title('Distribución por Estatus')
+    fig.tight_layout()
+    fig.savefig(buffer, format='png', dpi=100)
+    buffer.seek(0)
+    plt.close(fig)
+    png_data = buffer.read()
+    _set_cached_chart(cache_key, png_data)
+    return Response(png_data, mimetype='image/png')
 
-    resultado = restaurar_maquinaria_controller(id_maquinaria)
-    if resultado.get('success'):
-        return jsonify({'success': True, 'message': resultado.get('message')}), 200
-    return jsonify({'success': False, 'message': resultado.get('message', 'Error al restaurar')}), 400
-
-@home_bp.route('/gestionar-gravedad', methods=['GET'])
-def viewFormGravedad():
-        return render_template(f'{PATH_URL_IA}/form_gestionar_gravedad.html')
-
-
-# ===================== API MÓDULO GRAVEDAD (Catálogo) =====================
-@home_bp.route('/api/gravedad/registrar', methods=['POST'])
-def api_registrar_gravedad():
+@app.route('/api/dashboard/grafico-parroquias', methods=['GET'])
+def api_dashboard_grafico_parroquias():
     if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    data = request.get_json(silent=True) or request.form.to_dict()
-    return jsonify(registrar_gravedad_controller(data)), 200
+        return Response('No autorizado', status=401)
+    
+    cache_key = 'dashboard:grafico-parroquias'
+    cached = _get_cached_chart(cache_key)
+    if cached:
+        return Response(cached, mimetype='image/png')
+    
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from io import BytesIO
+    
+    try:
+        rows = SolicitudModel.obtener_estadisticas_por_parroquia()
+    except Exception:
+        rows = []
+    
+    if rows:
+        labels = [r['parroquia'] for r in rows]
+        valores = [int(r['total']) for r in rows]
+    else:
+        labels = ['Sin datos']
+        valores = [0]
+    
+    buffer = BytesIO()
+    fig, ax = plt.subplots(figsize=(6, 3))
+    colores = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#20c997', '#fd7e14', '#20c997']
+    ax.barh(labels, valores, color=colores[:len(labels)])
+    ax.set_title('Solicitudes por Parroquia')
+    ax.set_xlabel('Cantidad')
+    fig.tight_layout()
+    fig.savefig(buffer, format='png', dpi=100)
+    buffer.seek(0)
+    plt.close(fig)
+    png_data = buffer.read()
+    _set_cached_chart(cache_key, png_data)
+    return Response(png_data, mimetype='image/png')
 
+"""Modulo de Reportes - Fin"""
 
-@home_bp.route('/api/gravedad/listar', methods=['GET'])
-def api_listar_gravedades():
-    if 'conectado' not in session:
-        return jsonify([]), 401
-    return jsonify(listar_gravedades_controller())
+"""Modulo de Usuarios"""
+"""Modulo de Usuarios - Fin"""
 
+"""Modulo de Permisos"""
 
-@home_bp.route('/api/gravedad/obtener/<int:id_gravedad>', methods=['GET'])
-def api_obtener_gravedad(id_gravedad):
-    if 'conectado' not in session:
-        return jsonify(None), 401
-    return jsonify(obtener_gravedad_controller(id_gravedad) or None)
-
-
-@home_bp.route('/api/gravedad/actualizar/<int:id_gravedad>', methods=['PUT', 'POST'])
-def api_actualizar_gravedad(id_gravedad):
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    data = request.get_json(silent=True) or request.form.to_dict()
-    return jsonify(actualizar_gravedad_controller(id_gravedad, data)), 200
-
-
-@home_bp.route('/api/gravedad/eliminar/<int:id_gravedad>', methods=['DELETE', 'POST'])
-def api_eliminar_gravedad(id_gravedad):
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    return jsonify(eliminar_gravedad_controller(id_gravedad)), 200
-
-
-@home_bp.route('/api/gravedad/validar-nivel', methods=['GET'])
-def api_validar_nivel_gravedad():
-    if 'conectado' not in session:
-        return jsonify({'existe': False, 'error': 'Sesión no válida'}), 401
-    nivel = request.args.get('nivel', '').strip()
-    excluir = request.args.get('excluir', '').strip()
-    from models.model_gravedad import GravedadObraModel
-    existe = GravedadObraModel(nivel_gravedad=nivel).validar_nivel_existente(excluir)
-    return jsonify({'existe': bool(existe)})
-
-
-# ===================== MÓDULO PERMISOS POR ROL (Seguridad) =====================
 @home_bp.route('/gestionar-permisos', methods=['GET'])
 def viewFormPermisos():
     if 'conectado' not in session:
@@ -535,14 +1386,11 @@ def viewFormPermisos():
         return redirect(url_for('login_bp.inicio'))
     return render_template(f'{PATH_URL_SEG}/form_gestionar_permisos.html')
 
-
-# ---- API Módulos ----
 @home_bp.route('/api/seguridad/modulos/listar', methods=['GET'])
 def api_listar_modulos():
     if 'conectado' not in session:
         return jsonify([]), 401
     return jsonify(listar_modulos_controller())
-
 
 @home_bp.route('/api/seguridad/modulos/registrar', methods=['POST'])
 def api_registrar_modulo():
@@ -551,13 +1399,11 @@ def api_registrar_modulo():
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(registrar_modulo_controller(data)), 200
 
-
 @home_bp.route('/api/seguridad/modulos/obtener/<int:id_modulo>', methods=['GET'])
 def api_obtener_modulo(id_modulo):
     if 'conectado' not in session:
         return jsonify(None), 401
     return jsonify(obtener_modulo_controller(id_modulo) or None)
-
 
 @home_bp.route('/api/seguridad/modulos/actualizar/<int:id_modulo>', methods=['PUT', 'POST'])
 def api_actualizar_modulo(id_modulo):
@@ -566,21 +1412,17 @@ def api_actualizar_modulo(id_modulo):
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(actualizar_modulo_controller(id_modulo, data)), 200
 
-
 @home_bp.route('/api/seguridad/modulos/eliminar/<int:id_modulo>', methods=['DELETE', 'POST'])
 def api_eliminar_modulo(id_modulo):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
     return jsonify(eliminar_modulo_controller(id_modulo)), 200
 
-
-# ---- API Roles ----
 @home_bp.route('/api/seguridad/roles/listar', methods=['GET'])
 def api_listar_roles():
     if 'conectado' not in session:
         return jsonify([]), 401
     return jsonify(listar_roles_controller())
-
 
 @home_bp.route('/api/seguridad/roles/registrar', methods=['POST'])
 def api_registrar_rol():
@@ -589,13 +1431,11 @@ def api_registrar_rol():
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(registrar_rol_controller(data)), 200
 
-
 @home_bp.route('/api/seguridad/roles/obtener/<int:id_rol>', methods=['GET'])
 def api_obtener_rol(id_rol):
     if 'conectado' not in session:
         return jsonify(None), 401
     return jsonify(obtener_rol_controller(id_rol) or None)
-
 
 @home_bp.route('/api/seguridad/roles/actualizar/<int:id_rol>', methods=['PUT', 'POST'])
 def api_actualizar_rol(id_rol):
@@ -604,21 +1444,17 @@ def api_actualizar_rol(id_rol):
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(actualizar_rol_controller(id_rol, data)), 200
 
-
 @home_bp.route('/api/seguridad/roles/eliminar/<int:id_rol>', methods=['DELETE', 'POST'])
 def api_eliminar_rol(id_rol):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
     return jsonify(eliminar_rol_controller(id_rol)), 200
 
-
-# ---- API Permisos por Rol ----
 @home_bp.route('/api/seguridad/permisos/obtener/<int:id_rol>', methods=['GET'])
 def api_obtener_permisos_rol(id_rol):
     if 'conectado' not in session:
         return jsonify([]), 401
     return jsonify(obtener_permisos_rol_controller(id_rol))
-
 
 @home_bp.route('/api/seguridad/permisos/guardar', methods=['POST'])
 def api_guardar_permisos_rol():
@@ -636,298 +1472,23 @@ def api_guardar_permisos_rol():
             permisos = []
     return jsonify(guardar_permisos_controller(id_rol, permisos)), 200
 
-
 @home_bp.route('/api/seguridad/roles/<int:id_rol>/usuarios', methods=['GET'])
 def api_obtener_usuarios_por_rol(id_rol):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida', 'usuarios': []}), 401
     return jsonify(obtener_usuarios_por_rol_controller(id_rol))
 
+"""Modulo de Permisos - Fin"""
 
-@home_bp.route('/gestionar-prioridad', methods=['GET'])
-def viewFormPrioridad():
-    if 'conectado' in session:
-        return render_template(f'{PATH_URL_IA}/form_gestionar_prioridad.html')
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
+"""Modulo de Respaldos"""
 
+@home_bp.route('/administrar-respaldos', methods=['GET'])
+def viewFormRespaldos():
+    return redirect(url_for('respaldo_bp.listar_respaldos_view'))
 
-@home_bp.route('/prioridad/detalle/<int:id_prioridad>', methods=['GET'])
-def viewDetallePrioridad(id_prioridad):
-    if 'conectado' not in session:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-    from controllers.controller_prioridad import ver_detalle_prioridad_controller
-    detalle = ver_detalle_prioridad_controller(id_prioridad) or {}
-    if not detalle.get('id_gestion_prioridad'):
-        flash('No se encontró la prioridad solicitada.', 'warning')
-    return render_template(
-        f'{PATH_URL_IA}/detalle_prioridad.html',
-        detalle=detalle,
-        id_prioridad=id_prioridad
-    )
+"""Modulo de Respaldos - Fin"""
 
-
-# ===================== API MÓDULO PRIORIDAD (IA + Paginación) =====================
-@home_bp.route('/api/prioridad/listar', methods=['GET'])
-def api_listar_prioridad():
-    if 'conectado' not in session:
-        return jsonify({'data': [], 'total': 0, 'page': 1, 'per_page': 10}), 401
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 10))
-    except ValueError:
-        page, per_page = 1, 10
-    q = (request.args.get('q') or '').strip()
-    riesgo = (request.args.get('riesgo') or 'ALL').strip().upper()
-    orden = (request.args.get('orden') or 'rango_asc').strip()
-    filas, total = PrioridadModel.listar_priorizadas(
-        page=page, per_page=per_page, q=q, riesgo=riesgo, orden=orden
-    )
-    return jsonify({'data': filas, 'total': total, 'page': page, 'per_page': per_page})
-
-
-@home_bp.route('/api/prioridad/obtener/<int:id_prioridad>', methods=['GET'])
-def api_obtener_prioridad(id_prioridad):
-    if 'conectado' not in session:
-        return jsonify(None), 401
-    return jsonify(PrioridadModel.obtener_por_id(id_prioridad) or None)
-
-
-@home_bp.route('/api/prioridad/actualizar/<int:id_prioridad>', methods=['PUT', 'POST'])
-def api_actualizar_prioridad(id_prioridad):
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    from controllers.controller_prioridad import actualizar_prioridad_controller
-    data = request.get_json(silent=True) or request.form.to_dict()
-    resultado = actualizar_prioridad_controller(
-        id_prioridad=id_prioridad,
-        rango=data.get('rango_prioridad'),
-        justificacion=data.get('justificacion'),
-        estado=int(data.get('estado', 1)),
-        tipo_obra=data.get('tipo_obra'),
-        gravedad_sugerida=data.get('gravedad_sugerida'),
-        origen=data.get('origen'),
-    )
-    return jsonify(resultado)
-
-
-@home_bp.route('/prioridad/editar/<int:id_prioridad>', methods=['GET'])
-def viewEditarPrioridad(id_prioridad):
-    if 'conectado' not in session:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-    from controllers.controller_prioridad import ver_editar_prioridad_controller
-    detalle = ver_editar_prioridad_controller(id_prioridad) or {}
-    if not detalle.get('id_gestion_prioridad'):
-        flash('No se encontró la prioridad solicitada.', 'warning')
-        return redirect(url_for('home_bp.viewFormPrioridad'))
-    return render_template(
-        f'{PATH_URL_IA}/editar_prioridad.html',
-        detalle=detalle,
-        id_prioridad=id_prioridad
-    )
-
-
-@home_bp.route('/api/prioridad/eliminar/<int:id_prioridad>', methods=['DELETE', 'POST'])
-def api_eliminar_prioridad(id_prioridad):
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    modelo = PrioridadModel(id_prioridad=id_prioridad)
-    if modelo.eliminar_logico():
-        BitacoraService.registrar_accion(
-            session, 'Prioridad', 'ELIMINAR',
-            f'Desactivó prioridad ID: {id_prioridad}'
-        )
-        return jsonify({'success': True, 'message': 'Prioridad desactivada.'})
-    return jsonify({'success': False, 'message': 'Error al desactivar.'})
-
-
-@home_bp.route('/api/prioridad/clasificar-ia/<int:id_solicitud>', methods=['POST'])
-def api_clasificar_ia(id_solicitud):
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    responsable = session.get('name_surname', 'IA')
-    resultado = PrioridadModel.clasificar_nueva_solicitud(id_solicitud, responsable)
-    if resultado.get('success'):
-        BitacoraService.registrar_accion(
-            session, 'Prioridad', 'EDITAR',
-            f'IA clasificó la solicitud ID {id_solicitud} con prioridad {resultado["data"]["rango"]}'
-        )
-    return jsonify(resultado)
-
-
-@home_bp.route('/api/prioridad/solicitudes-ids', methods=['GET'])
-def api_solicitudes_ids():
-    if 'conectado' not in session:
-        return jsonify([]), 401
-    conexion = connectionBD()
-    try:
-        cursor = conexion.cursor()
-        cursor.execute("SELECT id_solicitudes FROM solicitudes WHERE estado = 1")
-        ids = [f[0] for f in cursor.fetchall()]
-        return jsonify(ids)
-    finally:
-        cursor.close()
-        conexion.close()
-
-
-@home_bp.route('/api/prioridad/clasificar-nueva/<int:id_solicitud>', methods=['POST'])
-def api_clasificar_nueva(id_solicitud):
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    from controllers.controller_prioridad import clasificar_nueva_solicitud_controller
-    resultado = clasificar_nueva_solicitud_controller(id_solicitud)
-    return jsonify(resultado)
-
-
-@home_bp.route('/api/prioridad/procesar-pendientes-batch', methods=['POST'])
-def api_procesar_pendientes_batch():
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    from controllers.controller_prioridad import procesar_pendientes_batch_controller
-    resultado = procesar_pendientes_batch_controller()
-    return jsonify(resultado)
-
-
-@home_bp.route('/api/prioridad/procesar-todas-batch', methods=['POST'])
-def api_procesar_todas_batch():
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
-    from controllers.controller_prioridad import procesar_todas_batch_controller
-    resultado = procesar_todas_batch_controller()
-    return jsonify(resultado)
-
-
-@home_bp.route('/gestionar-proyectos', methods=['GET'])
-def viewFormProyectos():
-    if 'conectado' in session:
-       
-        proyectos, contadores = listar_proyectos_controller(session)
-        
-        
-        maquinarias = listar_maquinarias_controller()
-        solicitudes = obtener_solicitudes()  
-        
-        
-        return render_template(
-            f'{PATH_URL_PROY}/proyectos.html', 
-            proyectos=proyectos, 
-            maquinarias=maquinarias, 
-            solicitudes=solicitudes,
-            contadores=contadores
-        )
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-@home_bp.route('/form-registrar-proyecto', methods=['POST'])
-def formRegistrarProyecto():
-    if 'conectado' not in session:
-        return jsonify({'success': False, 'message': 'Sesión no iniciada'}), 401
-    
-    resultado = registrar_proyecto_controller(request.form, session)
-    
-    if resultado.get('success'):
-        modelo = ProyectoModel()
-        nuevo_proyecto = modelo.obtener_proyecto_por_id(request.form.get('Codigo_p'))
-        
-        return jsonify({
-            'success': True, 
-            'message': resultado.get('message', 'Proyecto registrado correctamente'),
-            'data': nuevo_proyecto 
-        })
-    else:
-        return jsonify({'success': False, 'message': resultado.get('message', 'Error al procesar el registro')})
-
-@home_bp.route('/api/proyecto/validar-codigo/<string:codigo>', methods=['GET'])
-def api_validar_codigo_proyecto(codigo):
-    if 'conectado' not in session:
-        return jsonify({'error': 'No autorizado'}), 401
-    
-    modelo = ProyectoModel()
-    resultado = modelo.validar_codigo_proyecto(codigo)
-    return jsonify(resultado)
-
-
-@home_bp.route('/api/proyecto/detalle/<string:codigo>', methods=['GET'])
-def api_detalle_proyecto(codigo):
-    if 'conectado' not in session:
-        return jsonify({'error': 'No autorizado'}), 401
-
-    modelo = ProyectoModel()
-    detalle = modelo.obtener_detalle_proyecto_por_codigo(codigo)
-    if not detalle:
-        return jsonify({'error': 'Proyecto no encontrado'}), 404
-
-    return jsonify({
-        'status': 'success',
-        'data': {
-            'proyecto': detalle['proyecto'],
-            'solicitudes': detalle['solicitudes'],
-            'maquinaria': detalle['maquinaria']
-        }
-    })
-
-@home_bp.route('/editar-proyecto/<string:codigo_proyecto>', methods=['GET'])
-def viewEditarProyecto(codigo_proyecto):
-    if 'conectado' in session:
-        from models.model_proyecto import ProyectoModel
-        modelo = ProyectoModel()
-        proyecto = modelo.obtener_proyecto_por_id(codigo_proyecto)
-        maquinarias = listar_maquinarias_controller()
-        if proyecto:
-            return render_template(f'{PATH_URL_PROY}/form_proyecto_update.html', proyecto=proyecto, maquinarias=maquinarias)
-        else:
-            flash('El proyecto no existe.', 'error')
-            return redirect(url_for('home_bp.viewFormProyectos'))
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-@home_bp.route('/actualizar-proyecto', methods=['POST'])
-def formActualizarProyecto():
-    if 'conectado' in session:
-        
-        from controllers.funciones_proyecto import actualizar_proyecto_controller
-        
-        codigo_proyecto_actual = request.form.get('codigo_proyecto_actual')
-
-        if actualizar_proyecto_controller(codigo_proyecto_actual, request.form, session):
-            flash('Proyecto actualizado satisfactoriamente.', 'success')
-        else:
-            flash('Error al actualizar el proyecto.', 'error')
-            
-        return redirect(url_for('home_bp.viewFormProyectos'))
-    return redirect(url_for('login_bp.inicio'))
-@home_bp.route('/eliminar-proyecto/<string:codigo_proyecto>', methods=['GET'])
-def eliminarProyecto(codigo_proyecto):
-    if 'conectado' in session:
-        
-        from controllers.funciones_proyecto import eliminar_proyecto_controller
-        
-        
-        if eliminar_proyecto_controller(codigo_proyecto, session):
-            flash('Proyecto eliminado correctamente.', 'success')
-        else:
-            flash('Error al intentar eliminar el proyecto.', 'error')
-            
-        return redirect(url_for('home_bp.viewFormProyectos'))
-    return redirect(url_for('login_bp.inicio'))
-@home_bp.route('/api/obtener-solicitudes-json', methods=['GET'])
-def api_obtener_solicitudes_json():
-    if 'conectado' in session:
-        return jsonify(obtener_solicitudes())
-    else:
-        return jsonify([]), 401
-
-@home_bp.route('/api/obtener-solicitudes-pendientes-json', methods=['GET'])
-def api_obtener_solicitudes_pendientes_json():
-    if 'conectado' in session:
-        return jsonify(obtener_solicitudes_pendientes())
-    else:
-        return jsonify([]), 401
+"""Modulo de Bitacora"""
 
 @home_bp.route('/api/obtener-bitacora-json', methods=['GET'])
 def api_obtener_bitacora_json():
@@ -943,262 +1504,6 @@ def api_obtener_bitacora_json():
     else:
         return jsonify([]), 401
 
-
-
-### Solicitudes
-
-@home_bp.route('/api/solicitudes/crear', methods=['POST'])
-def api_crear_solicitud():
-    if 'conectado' not in session:
-        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
-
-    resultado = crear_solicitud(request.form, session)
-    if resultado.get('success'):
-        nuevo_id = resultado.get('id')
-        nombre_usr = session.get('name_surname') or session.get('nombre') or session.get('email_user') or ''
-        BitacoraService.registrar_accion(
-            session, 'Solicitudes', 'CREAR',
-            f'Solicitud #{nuevo_id} creada por {nombre_usr}'
-        )
-        return jsonify({'status': 'success', 'message': resultado.get('message', 'Solicitud creada'), 'id': nuevo_id}), 200
-    return jsonify({'status': 'error', 'message': resultado.get('message', 'No se pudo crear la solicitud')}), 400
-
-@home_bp.route('/api/solicitudes/<int:id_solicitud>', methods=['GET'])
-def api_obtener_solicitud(id_solicitud):
-    if 'conectado' not in session:
-        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
-
-    solicitud = obtener_solicitud_por_id(id_solicitud)
-    if solicitud:
-        return jsonify({'status': 'success', 'data': solicitud}), 200
-    return jsonify({'status': 'error', 'message': 'Solicitud no encontrada'}), 404
-
-@home_bp.route('/api/solicitudes/actualizar', methods=['PUT', 'POST'])
-def api_actualizar_solicitud():
-    if 'conectado' not in session:
-        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
-
-    datos = request.form if request.form else request.get_json(silent=True) or {}
-    id_solicitud = datos.get('id_solicitud') or datos.get('id')
-    if not id_solicitud:
-        return jsonify({'status': 'error', 'message': 'ID de solicitud requerido'}), 400
-
-    resultado = actualizar_solicitud(id_solicitud, datos, session)
-    if resultado.get('success'):
-        return jsonify({'status': 'success', 'message': resultado.get('message', 'Solicitud actualizada')}), 200
-    return jsonify({'status': 'error', 'message': resultado.get('message', 'No se pudo actualizar la solicitud')}), 400
-
-@home_bp.route('/api/solicitudes/<int:id_solicitud>/actualizar-estatus', methods=['POST'])
-def api_actualizar_estatus_solicitud(id_solicitud):
-    if 'conectado' not in session:
-        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
-
-    datos = request.get_json(silent=True) or {}
-    nuevo_estatus = datos.get('estatus', 'En Proceso')
-    
-    resultado = SolicitudModel.actualizar_estatus(id_solicitud, nuevo_estatus)
-    if resultado:
-        return jsonify({'success': True, 'message': 'Estado actualizado correctamente'}), 200
-    return jsonify({'success': False, 'message': 'No se pudo actualizar el estado'}), 400
-
-@home_bp.route('/api/solicitudes/eliminar/<int:id_solicitud>', methods=['DELETE'])
-def api_eliminar_solicitud(id_solicitud):
-    if 'conectado' not in session:
-        return jsonify({'status': 'error', 'message': 'Sesión no válida'}), 401
-
-    resultado = eliminar_solicitud(id_solicitud, session)
-    if isinstance(resultado, dict):
-        success = resultado.get('success')
-    else:
-        success = bool(resultado)
-
-    if success:
-        return jsonify({'status': 'success', 'message': resultado.get('message', 'Solicitud eliminada')}), 200
-    return jsonify({'status': 'error', 'message': resultado.get('message', 'No se pudo eliminar la solicitud')}), 400
-
-
-
-### Contratacion
-
-@contrataciones_bp.route('/form-contratacion', methods=['GET'])
-def viewFormContratacion():
-    if 'conectado' in session:
-        return render_template('contrataciones/form_contratacion.html')
-    return redirect(url_for('login_bp.inicio'))
-
-@contrataciones_bp.route('/contrataciones', methods=['GET'])
-def gestionar_contrataciones():
-    if 'conectado' in session:
-        modelo = ContratacionModel()
-        lista = modelo.obtener_todas_las_contrataciones()
-        return render_template('contratacion/form_contratacion.html', contrataciones=lista)
-    return redirect(url_for('login_bp.inicio'))
-
-@contrataciones_bp.route('/editar-contratacion/<int:id>', methods=['GET'])
-def vista_editar(id):
-    if 'conectado' in session:
-        modelo = ContratacionModel()
-        contratacion_data = modelo.obtener_contratacion_por_id(id)
-        
-        if contratacion_data:
-            campos_fecha = ['fecha_inicio_procedimiento', 'fecha_adjudicacion', 'fecha_registro']
-            for campo in campos_fecha:
-                if contratacion_data.get(campo):
-                    if hasattr(contratacion_data[campo], 'strftime'):
-                        contratacion_data[campo] = contratacion_data[campo].strftime('%Y-%m-%d')
-                    else:
-                        contratacion_data[campo] = str(contratacion_data[campo])[:10]
-            
-            return render_template('contratacion/form_contratacionM.html', contratacion=contratacion_data)
-        
-        flash('Contratación no encontrada o ha sido eliminada.', 'error')
-        return redirect(url_for('contrataciones_bp.gestionar_contrataciones'))
-    return redirect(url_for('login_bp.inicio'))
-
-@contrataciones_bp.route('/api/obtener-empresas-json', methods=['GET'])
-def obtener_empresas_json():
-    if 'conectado' in session:
-        modelo = ContratacionModel()
-        empresas = modelo.obtener_empresas()
-        return jsonify(empresas)
-    return jsonify([]), 401
-
-@contrataciones_bp.route('/registrar-contratacion', methods=['POST'])
-def procesar_registro():
-    if 'conectado' in session:
-        modelo = ContratacionModel()
-        exito, mensaje = modelo.registrar_contrataciones(request.form)
-        
-        if exito:
-            return jsonify({'status': 'success', 'message': mensaje})
-        return jsonify({'status': 'error', 'message': mensaje})
-            
-    return jsonify({'status': 'error', 'message': 'Sesión expirada.'}), 401
-
-
-@contrataciones_bp.route('/procesar-actualizacion', methods=['POST'])
-def procesar_actualizacion():
-    if 'conectado' in session:
-        modelo = ContratacionModel()
-        
-        exito, mensaje = modelo.actualizar_contratacion(request.form) 
-        
-        if exito:
-            return jsonify({
-                'status': 'success', 
-                'message': mensaje,
-                'redirect': url_for('contrataciones_bp.gestionar_contrataciones')
-            })
-        return jsonify({'status': 'error', 'message': mensaje})
-            
-    return jsonify({'status': 'error', 'message': 'Sesión expirada.'}), 401
-
-
-@contrataciones_bp.route('/eliminar-contratacion/<int:id>', methods=['POST'])
-def eliminar_contratacion(id):
-    if 'conectado' in session:
-        modelo = ContratacionModel()
-        if modelo.eliminar_contratacion(id):
-            return jsonify({'exito': True, 'mensaje': 'Contratación eliminada correctamente.'})
-        return jsonify({'exito': False, 'mensaje': 'Error al intentar eliminar el registro.'})
-            
-    return jsonify({'exito': False, 'mensaje': 'Sesión expirada.'}), 401
-
-@home_bp.route('/inspectores', methods=['GET'])
-def viewFormInspectores():
-    if 'conectado' in session:
-        return render_template('placeholder.html', title='Inspectores', message='Esta página está en desarrollo.', note='Contacto al administrador para habilitar esta función.')
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-## Empresas
-@home_bp.route('/registrar-empresas', methods=['GET'])
-def viewFormEmpresa():
-    if 'conectado' in session:
-        datos_formulario = session.pop('form_empresa', None)
-        
-        from models.model_empresas import EmpresaModel
-        modelo = EmpresaModel()
-        
-        return render_template(f'{PATH_URLE}/form_empresa.html', datos_form=datos_formulario)
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-@app.route('/form-registrar-empresas', methods=['POST'])
-def procesar_registro():
-    if 'conectado' not in session:
-        return jsonify({'exito': False, 'mensaje': 'Debes iniciar sesión.', 'categoria': 'error'}), 401
-    
-    from controllers.controller_empresa import procesar_registro_empresa
-    
-    exito, mensaje, categoria = procesar_registro_empresa(request.form)
-    
-    return jsonify({
-        'exito': exito,
-        'mensaje': mensaje,
-        'categoria': categoria
-    })
-
-@app.route('/lista-empresas', methods=['GET'])
-def lista_empresas():
-    if 'conectado' in session:
-        from controllers.controller_empresa import obtener_todas_las_empresas
-        return render_template(f'{PATH_URLE}/lista_empresas.html', empresas=obtener_todas_las_empresas())
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-@app.route('/edi-empresas/<string:rif>', methods=['GET'])
-def viewEditarEmpresa(rif):
-    if 'conectado' in session:
-        from controllers.controller_empresa import obtener_empresa_por_rif
-        from models.model_empresas import EmpresaModel
-        
-        empresa = obtener_empresa_por_rif(rif)
-        
-        if empresa:
-            return render_template(f'{PATH_URLE}/edi_empresas.html', empresa=empresa)
-        else:
-            flash('La empresa no existe.', 'error')
-            return redirect(url_for('lista_empresas'))
-    return redirect(url_for('login_bp.inicio'))
-
-@app.route('/update-empresa', methods=['POST'])
-def update_empresa():
-    from controllers.controller_empresa import update_empresa
-    
-    if update_empresa(request.form):
-        return jsonify({'exito': True, 'mensaje': 'Empresa actualizada correctamente.'})
-    else:
-        return jsonify({'exito': False, 'mensaje': 'Error al actualizar la empresa.', 'categoria': 'error'})
-
-@app.route('/eliminar-empresa/<string:rif>', methods=['GET'])
-def eliminar_empresa(rif):
-    if 'conectado' in session:
-        from controllers.controller_empresa import eliminar_empresa_por_rif
-        
-        if eliminar_empresa_por_rif(rif):
-            return jsonify({'exito': True, 'mensaje': 'Empresa eliminada correctamente.'})
-        else:
-            return jsonify({'exito': False, 'mensaje': 'Error al intentar eliminar la empresa.', 'categoria': 'error'})
-    else:
-        return jsonify({'exito': False, 'mensaje': 'Debes iniciar sesión.', 'categoria': 'error'})
-
-@app.route('/marcar-cumple-requisitos/<string:rif>', methods=['POST'])
-def marcar_cumple_requisitos(rif):
-    if 'conectado' in session:
-        from controllers.controller_empresa import marcar_cumple_requisitos
-        valor = request.form.get('valor', '1')
-        valor_int = 1 if valor in ('1', 'true', 'True', True) else 0
-        if marcar_cumple_requisitos(rif, valor_int):
-            return jsonify({'exito': True, 'mensaje': 'Cumplimiento de requisitos legales actualizado.', 'valor': valor_int})
-        return jsonify({'exito': False, 'mensaje': 'Error al actualizar el estado de la empresa.'})
-    return jsonify({'exito': False, 'mensaje': 'Debes iniciar sesión.', 'categoria': 'error'})
-
-
-@home_bp.route('/bitacora', methods=['GET'])
 @home_bp.route('/bitacora', methods=['GET'])
 def viewBitacora():
     if 'conectado' not in session:
@@ -1258,7 +1563,6 @@ def viewBitacora():
         ultima_fila=min(fin, total_registros) if total_registros else 0
     )
 
-
 @home_bp.route('/bitacora/ajax')
 def bitacora_ajax():
     if 'conectado' not in session:
@@ -1298,304 +1602,14 @@ def bitacora_ajax():
 
     return jsonify({'html': html})
 
-@home_bp.route('/inf_avance_obra', methods=['GET'])
-def viewFormInforme_avan_obras():
-    if 'conectado' in session:
-        return render_template(f'{PATH_URL_INF}/inf_avance_obra.html')
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-@home_bp.route('/form-registrar-solicitud', methods=['POST'])
-def formSolicitud():
-    if 'conectado' not in session:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-    resultado = {'success': False}
-    try:
-        resultado = crear_solicitud(request.form, session) or {'success': False}
-    except Exception as e:
-        print(f"[Router] Error al crear solicitud: {e}")
-        resultado = {'success': False}
-
-    if resultado.get('success'):
-        flash('Solicitud registrada exitosamente.', 'success')
-        return redirect(url_for('lista_solicitudes'))
-    else:
-        flash('La solicitud NO fue registrada. Verifique los datos ingresados.', 'error')
-        return redirect(url_for('home_bp.viewFormSolicitud'))
-
-@app.route('/lista-de-solicitudes', methods=['GET'])
-def lista_solicitudes():
-    if 'conectado' not in session:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-    solicitudes = obtener_solicitudes()
-    estadisticas = {}
-    try:
-        from models.model_solicitudes import SolicitudModel
-        estadisticas = SolicitudModel().obtener_estadisticas()
-    except Exception:
-        pass
-    return render_template(f'{PATH_URL}/lista_solicitudes.html',
-                           solicitudes=solicitudes, estadisticas=estadisticas)
-
-@app.route('/eliminar-solicitud/<int:id_solicitud>', methods=['GET'])
-def eliminar_solicitud_route(id_solicitud):
-    if 'conectado' not in session:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-    resultado = eliminar_solicitud(id_solicitud, session)
-    if isinstance(resultado, dict):
-        success = resultado.get('success')
-    else:
-        success = bool(resultado)
-
-    if success:
-        flash('Solicitud eliminada correctamente.', 'success')
-    else:
-        flash('Error al intentar eliminar la solicitud.', 'error')
-    return redirect(url_for('lista_solicitudes'))
-
-@app.route('/editar-solicitud/<int:id_solicitud>', methods=['GET'])
-def viewEditarSolicitud(id_solicitud):
-    if 'conectado' not in session:
-        return redirect(url_for('login_bp.inicio'))
-    solicitud = obtener_solicitud_por_id(id_solicitud)
-    if solicitud:
-        BitacoraService.registrar_accion(
-            session, 'Solicitudes', 'VER',
-            f'Accedió a editar Solicitud #{id_solicitud}'
-        )
-        return render_template(f'{PATH_URL}/editar_solicitud.html', solicitud=solicitud)
-    else:
-        flash('La solicitud no existe.', 'error')
-        return redirect(url_for('lista_solicitudes'))
-
-@app.route('/update-solicitud', methods=['POST'])
-def update_solicitud():
-    if 'conectado' not in session:
-        return redirect(url_for('login_bp.inicio'))
-    id_solicitud = request.form.get('id_solicitud')
-    resultado = actualizar_solicitud(id_solicitud, request.form, session)
-    if isinstance(resultado, dict):
-        success = resultado.get('success')
-    else:
-        success = bool(resultado)
-
-    if success:
-        flash('Solicitud actualizada correctamente.', 'success')
-    else:
-        flash('Error al actualizar la solicitud. Verifique los datos.', 'error')
-    return redirect(url_for('lista_solicitudes'))
-
-@app.route("/detalles-solicitud/", methods=['GET'])
-@app.route("/detalles-solicitud/<int:idSolicitud>", methods=['GET'])
-def detalleSolicitud(idSolicitud=None):
-    if 'conectado' not in session:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-    if idSolicitud is None:
-        return redirect(url_for('lista_solicitudes'))
-    detalle_solicitud = obtener_solicitud_por_id(idSolicitud)
-    if detalle_solicitud:
-        BitacoraService.registrar_accion(
-            session, 'Solicitudes', 'VER',
-            f'Detalles de Solicitud #{idSolicitud}'
-        )
-    return render_template(f'{PATH_URL}/detalles_solicitud.html',
-                           detalle_solicitud=detalle_solicitud or {})
-
-@app.route('/registrar-empleado', methods=['GET'])
-def viewFormRegistrarEmpleados():
-    if 'conectado' in session:
-        return render_template(f'{PATH_URL_REG_EMPLEADOS}/form_empleado.html')
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-    
-@app.route('/empleados', methods=['GET'])
-def viewFormListarEmpleados():
-    if 'conectado' in session:
-        resp_empleadosBD = sql_lista_empleadosBD()
-        return render_template(f'{PATH_URL_LIST_EMPLEADOS}/empleados.html', resp_empleadosBD=resp_empleadosBD)
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-# Buscador de empleados
-@app.route("/buscando-empleado", methods=['POST'])
-def viewBuscarEmpleadoBD():
-    resultadoBusqueda = buscarEmpleadoBD(request.json['busqueda'])
-    if resultadoBusqueda:
-        # CORRECCIÓN: Se cambió de PATH_URL a PATH_URL_LIST_EMPLEADOS
-        return render_template(f'{PATH_URL_LIST_EMPLEADOS}/resultado_busqueda_empleado.html', dataBusqueda=resultadoBusqueda)
-    else:
-        return jsonify({'fin': 0})
-
-@app.route("/editar-empleado/<int:id>", methods=['GET'])
-def viewEditarEmpleado(id):
-    if 'conectado' in session:
-        respuestaEmpleado = buscarEmpleadoUnico(id)
-        if respuestaEmpleado:
-            # CORRECCIÓN: Se cambió de PATH_URL a PATH_URL_LIST_EMPLEADOS
-            return render_template(f'{PATH_URL_LIST_EMPLEADOS}/form_empleado_update.html', empleado=respuestaEmpleado)
-        else:
-            flash('El empleado no existe.', 'error')
-            return redirect(url_for('login_bp.inicio'))
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-@home_bp.route('/reportes/reporte-excel', methods=['GET'])
-def viewFormReportesExcel():
-    if 'conectado' in session:
-        return render_template(f'{PATH_URL_REPORTE_EXCEL}/reporteExcel.html')
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-    
-@home_bp.route('/reportes/reporte-pdf', methods=['GET'])
-def viewFormReportesPDF():
-    if 'conectado' in session:
-        return render_template(f'{PATH_URL_REPORTE_PDF}/reportePDF.html')
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-    
-@home_bp.route('/reportes/reporte-estadistico', methods=['GET'])
-def viewFormReportesEstadisticos():
-    if 'conectado' in session:
-        return render_template(f'{PATH_URL_REPORTE_ESTADISTICO}/reporteEstadistico.html')
-    else:
-        flash('Primero debes iniciar sesión.', 'error')
-        return redirect(url_for('login_bp.inicio'))
-
-
-@app.route('/api/dashboard/grafico-tipos', methods=['GET'])
-def api_dashboard_grafico_tipos():
-    if 'conectado' not in session:
-        return Response('No autorizado', status=401)
-    
-    cache_key = 'dashboard:grafico-tipos'
-    cached = _get_cached_chart(cache_key)
-    if cached:
-        return Response(cached, mimetype='image/png')
-    
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    from io import BytesIO
-    
-    try:
-        datos = SolicitudModel.obtener_estadisticas_por_tipo()
-    except Exception:
-        datos = {}
-    
-    labels = list(datos.keys()) if datos else ['Sin datos']
-    valores = [int(v) for v in datos.values()] if datos else [0]
-    
-    buffer = BytesIO()
-    fig, ax = plt.subplots(figsize=(6, 3))
-    colores = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#20c997']
-    ax.bar(labels, valores, color=colores[:len(labels)])
-    ax.set_title('Solicitudes por Tipo')
-    ax.set_ylabel('Cantidad')
-    ax.set_xlabel('Tipo')
-    fig.tight_layout()
-    fig.savefig(buffer, format='png', dpi=100)
-    buffer.seek(0)
-    plt.close(fig)
-    png_data = buffer.read()
-    _set_cached_chart(cache_key, png_data)
-    return Response(png_data, mimetype='image/png')
-
-
-@app.route('/api/dashboard/grafico-estatus', methods=['GET'])
-def api_dashboard_grafico_estatus():
-    if 'conectado' not in session:
-        return Response('No autorizado', status=401)
-    
-    cache_key = 'dashboard:grafico-estatus'
-    cached = _get_cached_chart(cache_key)
-    if cached:
-        return Response(cached, mimetype='image/png')
-    
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    from io import BytesIO
-    
-    try:
-        datos = SolicitudModel.obtener_estadisticas()
-    except Exception:
-        datos = {}
-    
-    labels = list(datos.keys()) if datos else ['Sin datos']
-    valores = [int(v) for v in datos.values()] if datos else [0]
-    
-    buffer = BytesIO()
-    fig, ax = plt.subplots(figsize=(5, 3))
-    colores = ['#ffc107', '#0dcaf0', '#198754', '#6f42c1', '#dc3545']
-    wedges, texts, autotexts = ax.pie(valores, labels=labels, autopct='%1.1f%%', colors=colores[:len(labels)], startangle=90)
-    ax.set_title('Distribución por Estatus')
-    fig.tight_layout()
-    fig.savefig(buffer, format='png', dpi=100)
-    buffer.seek(0)
-    plt.close(fig)
-    png_data = buffer.read()
-    _set_cached_chart(cache_key, png_data)
-    return Response(png_data, mimetype='image/png')
-
-
-@app.route('/api/dashboard/grafico-parroquias', methods=['GET'])
-def api_dashboard_grafico_parroquias():
-    if 'conectado' not in session:
-        return Response('No autorizado', status=401)
-    
-    cache_key = 'dashboard:grafico-parroquias'
-    cached = _get_cached_chart(cache_key)
-    if cached:
-        return Response(cached, mimetype='image/png')
-    
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    from io import BytesIO
-    
-    try:
-        rows = SolicitudModel.obtener_estadisticas_por_parroquia()
-    except Exception:
-        rows = []
-    
-    if rows:
-        labels = [r['parroquia'] for r in rows]
-        valores = [int(r['total']) for r in rows]
-    else:
-        labels = ['Sin datos']
-        valores = [0]
-    
-    buffer = BytesIO()
-    fig, ax = plt.subplots(figsize=(6, 3))
-    colores = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#20c997', '#fd7e14', '#20c997']
-    ax.barh(labels, valores, color=colores[:len(labels)])
-    ax.set_title('Solicitudes por Parroquia')
-    ax.set_xlabel('Cantidad')
-    fig.tight_layout()
-    fig.savefig(buffer, format='png', dpi=100)
-    buffer.seek(0)
-    plt.close(fig)
-    png_data = buffer.read()
-    _set_cached_chart(cache_key, png_data)
-    return Response(png_data, mimetype='image/png')
-
+"""Modulo de Bitacora - Fin"""
 
 # Registrar el blueprint en la aplicación
 app.register_blueprint(home_bp)
 app.register_blueprint(contrataciones_bp)
 
+
+"""Modulo de Manual"""
 
 # ============================================================
 # MÓDULO: Manual del Sistema
@@ -1618,3 +1632,5 @@ def manual_sistema_pdf():
     directorio = os.path.join(app.root_path, 'static', 'manuals')
     return send_from_directory(directorio, 'Manual_del_Sistema_INVILARA.pdf',
                                mimetype='application/pdf')
+
+"""Modulo de Manual - Fin"""

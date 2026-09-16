@@ -448,8 +448,12 @@ class PrioridadModel(BaseModel):
                     LEFT JOIN gravedad_obra g
                            ON g.id_gravedad = ghp.gravedad_obra_id_gravedad
                           AND g.estado = 1
+                          LEFT JOIN prioridad pri
+                              ON pri.id_gestion_prioridad = s.prioridad_id_gestion_prioridad
                     WHERE s.estado = 1
-                      AND (s.prioridad_id_gestion_prioridad IS NULL OR s.prioridad_id_gestion_prioridad = 0)
+                         AND (s.prioridad_id_gestion_prioridad IS NULL
+                               OR s.prioridad_id_gestion_prioridad = 0
+                               OR COALESCE(pri.estado, 0) = 0)
                     ORDER BY s.fecha ASC""",
                 ())
             return cursor.fetchall()
@@ -674,24 +678,39 @@ class PrioridadModel(BaseModel):
                 try:
                     cursor = conexion.cursor(dictionary=True, buffered=True)
                     cursor.execute(
-                        "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+                        "SELECT prioridad_id_gestion_prioridad AS pid FROM solicitudes WHERE id_solicitudes=%s",
+                        (solicitud['id'],))
                     fila = cursor.fetchone()
-                    siguiente_id = fila['siguiente_id'] if fila else 1
+                    id_prioridad = fila['pid'] if fila else None
 
-                    cursor.execute(
-                        """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
-                           gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
-                           justificacion_cambio, estado, semaforo_id)
-                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                        (siguiente_id, rango, resultado_ia.get('tipo_obra'),
-                         resultado_ia.get('gravedad_sugerida'),
-                         resultado_ia.get('origen', 'ia'),
-                         datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
-                    id_prioridad = siguiente_id
+                    if id_prioridad and id_prioridad != 0:
+                        cursor.execute(
+                            """UPDATE prioridad
+                               SET rango_prioridad=%s, justificacion_cambio=%s,
+                                   tipo_obra=%s, gravedad_sugerida=%s, origen=%s,
+                                   responsable_ajuste=%s, estado=1, semaforo_id=%s
+                               WHERE id_gestion_prioridad=%s""",
+                            (rango, justificacion, resultado_ia.get('tipo_obra'),
+                             resultado_ia.get('gravedad_sugerida'), resultado_ia.get('origen', 'ia'),
+                             responsable, id_semaforo_defecto, id_prioridad))
+                    else:
+                        cursor.execute(
+                            "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+                        fila = cursor.fetchone()
+                        id_prioridad = fila['siguiente_id'] if fila else 1
 
-                    cursor.execute(
-                        "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
-                        (id_prioridad, solicitud['id']))
+                        cursor.execute(
+                            """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
+                               gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
+                               justificacion_cambio, estado, semaforo_id)
+                               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                            (id_prioridad, rango, resultado_ia.get('tipo_obra'),
+                             resultado_ia.get('gravedad_sugerida'), resultado_ia.get('origen', 'ia'),
+                             datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
+
+                        cursor.execute(
+                            "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
+                            (id_prioridad, solicitud['id']))
                     conexion.commit()
 
                     resultados.append({

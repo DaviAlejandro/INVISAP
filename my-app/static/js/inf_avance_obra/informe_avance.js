@@ -27,7 +27,7 @@ function inicializarModuloInformes() {
     // 3. Contador de caracteres para observaciones
     const textareaObs = document.getElementById('observaciones');
     if (textareaObs) {
-        agregarContadorCaracteres(textareaObs, 500);
+        agregarContadorCaracteres(textareaObs, 2000);
         console.log('✓ Contador de caracteres agregado');
     }
     

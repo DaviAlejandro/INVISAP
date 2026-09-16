@@ -336,6 +336,14 @@
 .origen-manual { background: #e2e8f0; color: #475569; }
 
 /* Acciones en tabla */
+.tabla-prioridad .col-acciones {
+  min-width: 100px;
+  width: auto;
+  padding: 0.75rem 0.5rem;
+}
+.tabla-prioridad .col-acciones .d-flex {
+  flex-wrap: nowrap;
+}
 .btn-action-icon {
   width: 34px;
   height: 34px;
@@ -534,6 +542,7 @@ body.dark-mode .btn-close.btn-close-round:focus {
   .stat-card .stat-icon { width: 38px; height: 38px; font-size: 1.05rem; }
   .col-tipo, .col-riesgo, .col-origen { display: none; }
   .col-solicitud, .col-prio, .col-acciones { display: table-cell !important; }
+  .tabla-prioridad .col-acciones { min-width: 80px; }
   .solicitud-texto { max-width: 130px; font-size: 0.78rem; }
   .id-badge { font-size: 0.7rem; padding: 3px 8px; }
   .pagination .page-link { padding: 0.35rem 0.5rem; min-width: 30px; font-size: 0.78rem; }
@@ -555,6 +564,7 @@ body.dark-mode .btn-close.btn-close-round:focus {
   .prio-valor { font-size: 0.62rem; }
   .btn-action-icon { width: 28px; height: 28px; }
   .btn-action-icon i { font-size: 0.8rem; }
+  .tabla-prioridad .col-acciones { min-width: 70px; }
   .pagination .page-link { padding: 0.3rem 0.45rem; min-width: 28px; font-size: 0.72rem; }
 }
 

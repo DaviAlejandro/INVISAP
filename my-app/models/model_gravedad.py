@@ -41,15 +41,25 @@ class GravedadObraModel(BaseModel):
         conexion = connectionBD()
         try:
             cursor = conexion.cursor()
-            cursor.execute("SELECT COALESCE(MAX(id_gravedad), 0) + 1 AS siguiente_id FROM gravedad_obra")
-            fila = cursor.fetchone()
-            siguiente_id = fila[0] if fila else 1
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_gravedad), 0) + 1 AS siguiente_id FROM gravedad_obra")
+                fila = cursor.fetchone()
+                siguiente_id = fila[0] if fila else 1
 
-            sql = """INSERT INTO gravedad_obra (id_gravedad, nivel_gravedad, criticidad, estado)
-                     VALUES (%s, %s, %s, %s)"""
-            cursor.execute(sql, (siguiente_id, self.__nivel_gravedad, self.__criticidad, self.__estado))
-            conexion.commit()
-            return siguiente_id
+                sql = """INSERT INTO gravedad_obra (id_gravedad, nivel_gravedad, criticidad, estado)
+                         VALUES (%s, %s, %s, %s)"""
+                try:
+                    cursor.execute(sql, (siguiente_id, self.__nivel_gravedad, self.__criticidad, self.__estado))
+                    conexion.commit()
+                    return siguiente_id
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conexion.rollback()
+            raise ValueError("No se pudo reservar un ID único para gravedad tras 3 intentos")
         finally:
             cursor.close()
             conexion.close()

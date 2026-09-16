@@ -154,27 +154,37 @@ class EmpleadoModel(BaseModel):
         if row:
             # Si existe, retornar el ID
             return row['id_persona'] if isinstance(row, dict) else row[0]
-        
-        # Si no existe, crear nuevo registro en persona
-        cursor.execute("SELECT COALESCE(MAX(id_persona), 0) + 1 AS siguiente_id FROM persona")
-        fila = cursor.fetchone()
-        siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
 
-        sql_insertar = """
-            INSERT INTO persona (id_persona, cedula_persona, direccion, parroquia, municipio, telefono, correo)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-        cursor.execute(sql_insertar, (
-            siguiente_id,
-            self.__cedula_persona,
-            self.__direccion or 'No especificado',
-            self.__parroquia or 'No especificado',
-            self.__municipio or 'No especificado',
-                self.__telefono or '0000000000',
-            self.__correo or 'sin_correo@invilara.gob.ve'
-        ))
-        
-        return cursor.lastrowid
+        for _ in range(3):
+            cursor.execute("SELECT COALESCE(MAX(id_persona), 0) + 1 AS siguiente_id FROM persona")
+            fila = cursor.fetchone()
+            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+
+            sql_insertar = """
+                INSERT INTO persona (id_persona, cedula_persona, direccion, parroquia, municipio, telefono, correo)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            try:
+                cursor.execute(sql_insertar, (
+                    siguiente_id,
+                    self.__cedula_persona,
+                    self.__direccion or 'No especificado',
+                    self.__parroquia or 'No especificado',
+                    self.__municipio or 'No especificado',
+                        self.__telefono or '0000000000',
+                    self.__correo or 'sin_correo@invilara.gob.ve'
+                ))
+                return cursor.lastrowid
+            except Exception as e:
+                error_code = getattr(e, 'errno', None)
+                if error_code is None and e.args:
+                    error_code = e.args[0]
+                if error_code != 1062:
+                    raise
+                if hasattr(cursor, 'connection') and cursor.connection:
+                    cursor.connection.rollback()
+
+        raise ValueError("No se pudo reservar un ID único para persona tras 3 intentos")
     
     def __guardar_empleado_db(self):
         """
@@ -198,27 +208,38 @@ class EmpleadoModel(BaseModel):
                 return None
             
             # Paso 2: Insertar empleado con FK a persona
-            cur.execute("SELECT COALESCE(MAX(id_empleados), 0) + 1 AS siguiente_id FROM empleados")
-            fila = cur.fetchone()
-            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+            for _ in range(3):
+                cur.execute("SELECT COALESCE(MAX(id_empleados), 0) + 1 AS siguiente_id FROM empleados")
+                fila = cur.fetchone()
+                siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
 
-            sql = """
-                INSERT INTO empleados 
-                (id_empleados, nombre_empleado, cargo, fecha_ingreso, gerencia_asignada, persona_id_persona, estado) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            cur.execute(sql, (
-                siguiente_id,
-                self.__nombre_empleado,
-                self.__cargo,
-                self.__fecha_ingreso,
-                self.__gerencia_asignada,
-                persona_id,
-                1
-            ))
-            
-            conn.commit()
-            return cur.lastrowid
+                sql = """
+                    INSERT INTO empleados 
+                    (id_empleados, nombre_empleado, cargo, fecha_ingreso, gerencia_asignada, persona_id_persona, estado) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                try:
+                    cur.execute(sql, (
+                        siguiente_id,
+                        self.__nombre_empleado,
+                        self.__cargo,
+                        self.__fecha_ingreso,
+                        self.__gerencia_asignada,
+                        persona_id,
+                        1
+                    ))
+
+                    conn.commit()
+                    return cur.lastrowid
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conn.rollback()
+
+            raise ValueError("No se pudo reservar un ID único para empleado tras 3 intentos")
             
         except Exception as e:
             if conn:

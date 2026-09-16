@@ -21,27 +21,37 @@ class PublicacionModel(BaseModel):
         try:
             conexion = connectionBD_invilara()
             cursor = conexion.cursor()
-            
-            cursor.execute("SELECT COALESCE(MAX(id_publicacion), 0) + 1 AS siguiente_id FROM publicacion")
-            fila = cursor.fetchone()
-            siguiente_id = fila[0] if fila else 1
-            
-            sql = """INSERT INTO publicacion 
-                     (id_publicacion, titulo_publicacion, nombre_responsable, tipo_publicacion, fecha_publicacion, informe_avance_obra_id_informe, estado, cuerpo_publicacion)
-                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-            valores = (
-                siguiente_id,
-                data['titulo_publicacion'], 
-                data['nombre_responsable'], 
-                data['tipo_publicacion'], 
-                data['fecha_publicacion'],
-                data['informe_avance_obra_id_informe'],
-                1,
-                data.get('cuerpo_publicacion', 'Contenido pendiente')
-            )
-            cursor.execute(sql, valores)
-            conexion.commit()
-            return cursor.rowcount
+
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_publicacion), 0) + 1 AS siguiente_id FROM publicacion")
+                fila = cursor.fetchone()
+                siguiente_id = fila[0] if fila else 1
+
+                sql = """INSERT INTO publicacion 
+                         (id_publicacion, titulo_publicacion, nombre_responsable, tipo_publicacion, fecha_publicacion, informe_avance_obra_id_informe, estado, cuerpo_publicacion)
+                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+                valores = (
+                    siguiente_id,
+                    data['titulo_publicacion'], 
+                    data['nombre_responsable'], 
+                    data['tipo_publicacion'], 
+                    data['fecha_publicacion'],
+                    data['informe_avance_obra_id_informe'],
+                    1,
+                    data.get('cuerpo_publicacion', 'Contenido pendiente')
+                )
+                try:
+                    cursor.execute(sql, valores)
+                    conexion.commit()
+                    return cursor.rowcount
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conexion.rollback()
+            raise ValueError("No se pudo reservar un ID único para publicacion tras 3 intentos")
         except Exception as e:
             print(f"Error en registrar_publicacion: {e}")
             return 0

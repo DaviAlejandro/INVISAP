@@ -99,10 +99,11 @@ class InformeAvanceModel(BaseModel):
         return self.__observaciones
     
     def set_observaciones(self, valor):
-        valor = self._limpiar_texto(valor, 2000)
-        if valor and not self._RE_OBSERVACIONES.match(valor):
+        texto = '' if valor is None else str(valor)
+        if len(texto) > 2000:
             raise ValueError("Observaciones inválidas. Máximo 2000 caracteres.")
-        self.__observaciones = valor or "Sin observaciones"
+
+        self.__observaciones = self._limpiar_texto(texto, 2000) or "Sin observaciones"
     
     def set_evidencias_antes(self, lista_ids):
         if len(lista_ids) > self.MAX_IMAGENES_POR_ETAPA:
@@ -272,7 +273,7 @@ class InformeAvanceModel(BaseModel):
                 codigo_proyecto = 'FRE-001'
 
             sql = """INSERT INTO avance (id_avance, descripcion, porcentaje_avance, gerente, fecha_avance, obra_id_obra, obra_estado, obra_contratacion_id_contratacion, obra_gestionar_proyectos_codigo_proyecto) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            params = (id_avance, descripcion, porcentaje, str(gerente_id) if gerente_id else '1', datetime.now().date(), id_obra, id_semaforo, id_contratacion, codigo_proyecto)
+            params = (id_avance, descripcion, porcentaje, str(gerente_id) if gerente_id else '1', datetime.now().date(), id_obra, id_estado, id_contratacion, codigo_proyecto)
             cur.execute(sql, params)
             conn.commit()
             return str(id_avance)
@@ -315,22 +316,33 @@ class InformeAvanceModel(BaseModel):
             ev_despues = ','.join(map(str, self.__evidencias_despues)) if self.__evidencias_despues else ''
 
             poblacion = self.__poblacion_beneficiada or 'No especificado'
-            
-            cur.execute("SELECT COALESCE(MAX(id_informe), 0) + 1 AS siguiente_id FROM informe_avance_obra")
-            fila = cur.fetchone()
-            siguiente_id = fila[0] if fila else 1
-            
-            cur.execute(sql, (siguiente_id, self.__fecha or datetime.now(), self.__estado, poblacion, self.__tipo_informe, ev_antes, ev_durante, ev_despues, self.__avance_id))
-            nuevo_id = siguiente_id
 
-            if self.__avance_id:
-                gerente_a_usar = self.__gerente or '1'
-                obs = self._limpiar_texto(self.__observaciones or '', 2000) or 'Sin observaciones'
-                cur.execute("UPDATE avance SET descripcion = %s, porcentaje_avance = %s WHERE id_avance = %s",
-                    (obs, self.__porcentaje_avance, self.__avance_id))
+            for _ in range(3):
+                cur.execute("SELECT COALESCE(MAX(id_informe), 0) + 1 AS siguiente_id FROM informe_avance_obra")
+                fila = cur.fetchone()
+                siguiente_id = fila[0] if fila else 1
 
-            conn.commit()
-            return nuevo_id
+                try:
+                    cur.execute(sql, (siguiente_id, self.__fecha or datetime.now(), self.__estado, poblacion, self.__tipo_informe, ev_antes, ev_durante, ev_despues, self.__avance_id))
+                    nuevo_id = siguiente_id
+
+                    if self.__avance_id:
+                        gerente_a_usar = self.__gerente or '1'
+                        obs = self._limpiar_texto(self.__observaciones or '', 2000) or 'Sin observaciones'
+                        cur.execute("UPDATE avance SET descripcion = %s, porcentaje_avance = %s WHERE id_avance = %s",
+                            (obs, self.__porcentaje_avance, self.__avance_id))
+
+                    conn.commit()
+                    return nuevo_id
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conn.rollback()
+
+            raise ValueError("No se pudo reservar un ID único para el informe tras 3 intentos")
         except Exception as e:
             print(f"Error __registrar_informe_db: {e}")
             if conn:

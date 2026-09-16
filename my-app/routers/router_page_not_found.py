@@ -21,7 +21,6 @@ def page_not_found(error):
             return jsonify({'status': 'error', 'message': 'Sesión no válida.'}), 401
         return jsonify({'status': 'error', 'message': 'Recurso no encontrado.'}), 404
 
-    if 'conectado' in session and request.method == 'GET':
-        return redirect(url_for('login_bp.inicio'))
-    else:
-        return redirect(url_for('login_bp.inicio'))
+    # Una URL inexistente no debe enviarse al login si la sesión sigue activa.
+    # El inicio funciona como destino seguro para navegación manual o enlaces obsoletos.
+    return redirect(url_for('login_bp.inicio'))

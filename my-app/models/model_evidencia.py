@@ -186,17 +186,29 @@ class EvidenciaModel(BaseModel):
                 url = self.__comprimir_y_guardar_imagen(file)
                 if not self._validar_url(url):
                     raise ValueError(f"URL inválida: {url}")
-                
+
                 etapa = self.__etapas[i]
                 nombre_referencia = self._limpiar_texto(file.filename, 45)
-                
-                cur.execute("SELECT COALESCE(MAX(id_evidencia), 0) + 1 AS siguiente_id FROM evidencia")
-                fila = cur.fetchone()
-                siguiente_id = fila[0] if fila else 1
-                
-                params = (siguiente_id, nombre_referencia, url, datetime.now(), 1, etapa)
-                cur.execute(sql, params)
-                ids_insertados.append(cur.lastrowid)
+
+                for _ in range(3):
+                    cur.execute("SELECT COALESCE(MAX(id_evidencia), 0) + 1 AS siguiente_id FROM evidencia")
+                    fila = cur.fetchone()
+                    siguiente_id = fila[0] if fila else 1
+
+                    params = (siguiente_id, nombre_referencia, url, datetime.now(), 1, etapa)
+                    try:
+                        cur.execute(sql, params)
+                        ids_insertados.append(cur.lastrowid)
+                        break
+                    except Exception as e:
+                        error_code = getattr(e, 'errno', None)
+                        if error_code is None and e.args:
+                            error_code = e.args[0]
+                        if error_code != 1062:
+                            raise
+                        conn.rollback()
+                else:
+                    raise ValueError("No se pudo reservar un ID único para evidencia tras 3 intentos")
             conn.commit()
             return ids_insertados
         except Exception as e:

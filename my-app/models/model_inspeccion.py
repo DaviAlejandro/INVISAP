@@ -192,9 +192,13 @@ class InspeccionModel(BaseModel):
     def __obtener_siguiente_id_inspeccion(conn):
         cur_id = conn.cursor(dictionary=True)
         try:
-            cur_id.execute("SELECT COALESCE(MAX(id_inspeccion), 0) + 1 AS siguiente FROM inspeccion")
-            fila = cur_id.fetchone()
-            return int(fila['siguiente']) if fila else 1
+            for _ in range(3):
+                cur_id.execute("SELECT COALESCE(MAX(id_inspeccion), 0) + 1 AS siguiente FROM inspeccion")
+                fila = cur_id.fetchone()
+                valor = int(fila['siguiente']) if fila else 1
+                if valor:
+                    return valor
+            return 1
         finally:
             cur_id.close()
 

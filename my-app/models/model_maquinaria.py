@@ -106,14 +106,24 @@ class MaquinariaModel(BaseModel):
                     conexion.commit()
                     return {'success': True, 'id': existe['id_maquinaria'], 'restaurada': True, 'message': 'Maquinaria restaurada correctamente'}
             
-            cursor.execute("SELECT COALESCE(MAX(id_maquinaria), 0) + 1 AS siguiente_id FROM maquinaria")
-            fila = cursor.fetchone()
-            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_maquinaria), 0) + 1 AS siguiente_id FROM maquinaria")
+                fila = cursor.fetchone()
+                siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
 
-            sql = "INSERT INTO maquinaria (id_maquinaria, nombre_maquinaria, tipo_maquinaria, estado) VALUES (%s, %s, %s, 1)"
-            cursor.execute(sql, (siguiente_id, nombre.strip(), tipo))
-            conexion.commit()
-            return {'success': True, 'id': cursor.lastrowid, 'message': 'Maquinaria registrada correctamente'}
+                sql = "INSERT INTO maquinaria (id_maquinaria, nombre_maquinaria, tipo_maquinaria, estado) VALUES (%s, %s, %s, 1)"
+                try:
+                    cursor.execute(sql, (siguiente_id, nombre.strip(), tipo))
+                    conexion.commit()
+                    return {'success': True, 'id': cursor.lastrowid, 'message': 'Maquinaria registrada correctamente'}
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conexion.rollback()
+            raise ValueError("No se pudo reservar un ID único para maquinaria tras 3 intentos")
         except Exception as e:
             print(f"Error al registrar: {e}")
             return {'success': False, 'message': f'Error al registrar en la base de datos: {str(e)}'}

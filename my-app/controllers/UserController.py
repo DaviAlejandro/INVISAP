@@ -34,13 +34,36 @@ def verificar_permiso(modulo):
         from models.model_seguridad import RolPermisoModel
         try:
             permisos_db = RolPermisoModel().obtener_nombres_modulos_por_rol(rol_usuario)
-            g._permisos_cache = set(permisos_db) if permisos_db else set(PERMISOS.get(rol_usuario, []))
+            g._permisos_cache = set(permisos_db)
         except Exception:
-            g._permisos_cache = set(PERMISOS.get(rol_usuario, []))
+            g._permisos_cache = set()
 
     if rol_usuario == 'Super Usuario':
         return True
+    usuario_id = session.get('id') or session.get('id_usuarios')
+    if usuario_id:
+        try:
+            from models.model_seguridad import RolPermisoModel
+            excepciones = RolPermisoModel().obtener_permisos_usuario(usuario_id)
+            permiso = next((p for p in excepciones if p.get('nombre') == modulo), None)
+            if permiso is not None:
+                return bool(permiso.get('puede_ver'))
+        except Exception:
+            return False
     return modulo in g._permisos_cache
+
+
+def verificar_permiso_accion(modulo, accion):
+    """Verifica Ver/Crear/Editar/Eliminar considerando excepciones individuales."""
+    if session.get('rol') == 'Super Usuario':
+        return True
+    try:
+        from models.model_seguridad import RolPermisoModel
+        permiso = RolPermisoModel().obtener_permiso(
+            session.get('rol', 'Usuario'), session.get('id') or session.get('id_usuarios'), modulo)
+        return bool(permiso and permiso.get(f'puede_{accion}'))
+    except Exception:
+        return False
 
 def requerir_permiso(modulo):
     """Decorador para requerir permiso de módulo."""
@@ -89,6 +112,9 @@ def register_user():
     if not verificar_permiso('usuarios'):
         flash('No tienes permiso para registrar usuarios.', 'error')
         return redirect(url_for('login_bp.inicio'))
+    if not verificar_permiso_accion('usuarios', 'crear'):
+        flash('No tienes permiso para registrar usuarios.', 'error')
+        return redirect(url_for('user_bp.list_users'))
     
     name_surname = request.form.get('nombre')
     email_user = request.form.get('correo')
@@ -193,6 +219,9 @@ def update_user():
     if not verificar_permiso('usuarios'):
         flash('No tienes permiso para modificar usuarios.', 'error')
         return redirect(url_for('login_bp.inicio'))
+    if not verificar_permiso_accion('usuarios', 'editar'):
+        flash('No tienes permiso para modificar usuarios.', 'error')
+        return redirect(url_for('user_bp.list_users'))
 
     user_id = request.form.get('id_user')
     nombre = request.form.get('nombre')
@@ -256,6 +285,9 @@ def delete_user(user_id):
     if not verificar_permiso('usuarios'):
         flash('No tienes permiso para eliminar usuarios.', 'error')
         return redirect(url_for('login_bp.inicio'))
+    if not verificar_permiso_accion('usuarios', 'eliminar'):
+        flash('No tienes permiso para eliminar usuarios.', 'error')
+        return redirect(url_for('user_bp.list_users'))
     
     if not request.args.get('confirm'):
         flash('¿Estás seguro? Haz clic en "Eliminar" nuevamente para confirmar.', 'warning')

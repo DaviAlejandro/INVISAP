@@ -37,7 +37,9 @@
 .pagination .page-link { color: #495057; border: 1px solid #dee2e6; border-radius: 8px; min-width: 38px; text-align: center; padding: 0.5rem 0.75rem; transition: all 0.2s ease; background-color: #fff; }
 .pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: #fff; box-shadow: 0 2px 8px rgba(13, 110, 253, 0.35); }
 .pagination .page-item.disabled .page-link { color: #adb5bd; pointer-events: none; background-color: #f8f9fa; }
+.pagination .page-item.disabled .page-link { min-width: 26px; padding-left: 0.35rem; padding-right: 0.35rem; border-color: transparent; background: transparent; }
 .pagination .page-link:hover { background-color: #e9ecef; color: #0d6efd; transform: translateY(-1px); }
+#pagination_controls_bitacora { align-items: center; justify-content: center; }
 
 /* Media Queries para diseño fluido y Responsivo */
 @media (max-width: 768px) {
@@ -55,6 +57,10 @@
   .table-bitacora th, .table-bitacora td { padding: 0.6rem 0.5rem !important; font-size: 0.75rem; }
   .action-badge { font-size: 0.65rem; padding: 0.25em 0.6em; }
   .usuario-chip, .modulo-chip { font-size: 0.7rem; padding: 0.15em 0.6em; }
+  #pagination_controls_bitacora { gap: 3px; }
+  #pagination_controls_bitacora .page-link { min-width: 32px; padding: 0.4rem 0.45rem; }
+  #pagination_controls_bitacora .page-item:first-child .page-link,
+  #pagination_controls_bitacora .page-item:last-child .page-link { min-width: auto; }
 }
 
 /* ============================================
@@ -145,6 +151,10 @@ body.dark-mode .pagination .page-item.disabled .page-link {
   color: #6c757d;
   background-color: #232333;
 }
+body.dark-mode .pagination .page-item.disabled .page-link {
+  background: transparent;
+  border-color: transparent;
+}
 body.dark-mode .pagination .page-link:hover {
   background-color: #323248;
   color: #4ade80;
@@ -211,6 +221,37 @@ body.dark-mode .text-muted {
 }
 #modalDetalleBitacora .modal-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.btn-close-detalle {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: -0.25rem -0.25rem 0 1rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.3);
+  opacity: 1;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.btn-close-detalle:hover,
+.btn-close-detalle:focus-visible {
+  border-color: #fff;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.6);
+  transform: scale(1.05);
+}
+.btn-close-detalle:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+.btn-close-detalle i {
+  font-size: 0.85rem;
+  line-height: 1;
 }
 .detail-row {
   display: flex;

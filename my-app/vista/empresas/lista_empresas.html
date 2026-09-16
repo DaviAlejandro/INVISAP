@@ -69,25 +69,27 @@
               {% endif %}
             </td>
             <td class="text-center">
-              <a href="{{ url_for('viewEditarEmpresa', rif=e.rif) }}" 
-                 class="btn rounded-pill btn-warning me-2" 
-                 title="Editar">
-                 <i class="bi bi-pencil"></i>
-              </a>
-              <a href="#" 
-                class="btn rounded-pill btn-danger btn-eliminar" 
-                data-url="{{ url_for('eliminar_empresa', rif=e.rif) }}"
-                data-nombre="{{ e.nombre_empresa }}">
-                <i class="bi bi-trash3"></i>
-              </a>
-              <button type="button" 
-                      class="btn rounded-pill btn-success btn-ver-requisitos" 
-                      title="Verificar requisitos legales"
-                      data-rif="{{ e.rif }}"
-                      data-nombre="{{ e.nombre_empresa }}"
-                      data-cumple="{{ e.cumple_requisitos }}">
-                <i class="bi bi-shield-check"></i>
-              </button>
+              <div class="d-inline-flex gap-1 justify-content-center">
+                <a href="{{ url_for('viewEditarEmpresa', rif=e.rif) }}" 
+                   class="btn rounded-pill btn-warning" 
+                   title="Editar">
+                   <i class="bi bi-pencil"></i>
+                </a>
+                <a href="#" 
+                  class="btn rounded-pill btn-danger btn-eliminar" 
+                  data-url="{{ url_for('eliminar_empresa', rif=e.rif) }}"
+                  data-nombre="{{ e.nombre_empresa }}">
+                  <i class="bi bi-trash3"></i>
+                </a>
+                <button type="button" 
+                        class="btn rounded-pill btn-success btn-ver-requisitos" 
+                        title="Verificar requisitos legales"
+                        data-rif="{{ e.rif }}"
+                        data-nombre="{{ e.nombre_empresa }}"
+                        data-cumple="{{ e.cumple_requisitos }}">
+                  <i class="bi bi-shield-check"></i>
+                </button>
+              </div>
             </td>
           </tr>
           {% else %}

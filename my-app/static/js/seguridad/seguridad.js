@@ -239,7 +239,7 @@ function renderTablaModulos(modulos) {
     tr.innerHTML = `
       <td>${m.id_modulo}</td>
       <td><strong>${m.nombre}</strong></td>
-      <td><code class="url-editable" data-id="${m.id_modulo}" data-url="${m.url}">${m.url}</code></td>
+      <td><code>${m.url}</code></td>
       <td>${tipoBadge(m.tipo)}</td>
       <td>${estadoBadge(m.estado)}</td>
       <td>
@@ -249,45 +249,13 @@ function renderTablaModulos(modulos) {
     tb.appendChild(tr);
   });
 }
-function guardarUrlModulo(idModulo, nuevaUrl) {
-  fetch(`/api/seguridad/modulos/obtener/${idModulo}`)
-    .then(r => r.json())
-    .then(d => {
-      if (!d) return Promise.reject('Módulo no encontrado');
-      const payload = {
-        nombre: d.nombre,
-        descripcion: d.descripcion || '',
-        url: nuevaUrl,
-        tipo: d.tipo,
-        icono: d.icono || '',
-        orden: d.orden || 0,
-        estado: d.estado
-      };
-      return fetch(`/api/seguridad/modulos/actualizar/${idModulo}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    })
-    .then(r => r ? r.json() : null)
-    .then(d => {
-      if (d && d.success) {
-        cargarModulos();
-      } else if (d) {
-        Swal.fire('Error', d.message || 'No se pudo actualizar la URL.', 'error');
-        cargarModulos();
-      }
-    })
-    .catch(() => {
-      Swal.fire('Error', 'Error de conexión.', 'error');
-      cargarModulos();
-    });
-}
 function resetFormModulo() {
   document.getElementById('modalModuloTitle').textContent = 'Nuevo Módulo';
   document.getElementById('id_modulo').value = '';
   document.getElementById('nombre_modulo').value = '';
   document.getElementById('url_modulo').value = '';
+  document.getElementById('url_modulo').readOnly = false;
+  document.getElementById('url_modulo').title = '';
   document.getElementById('descripcion_modulo').value = '';
   document.getElementById('tipo_modulo').value = 'CRUD';
   document.getElementById('icono_modulo').value = '';
@@ -307,6 +275,8 @@ function editarModulo(id) {
       document.getElementById('id_modulo').value = d.id_modulo;
       document.getElementById('nombre_modulo').value = d.nombre;
       document.getElementById('url_modulo').value = d.url;
+      document.getElementById('url_modulo').readOnly = true;
+      document.getElementById('url_modulo').title = 'La URL no se puede modificar después de crear el módulo.';
       document.getElementById('descripcion_modulo').value = d.descripcion || '';
       document.getElementById('tipo_modulo').value = d.tipo;
       document.getElementById('icono_modulo').value = d.icono || '';
@@ -396,6 +366,8 @@ function cargarSelectRol() {
 }
 function cargarPermisos() {
   const idRol = document.getElementById('selectRol').value;
+  document.getElementById('selectUsuariosPorRol').value = '';
+  window.permisosObjetivo = { tipo: 'rol', id: idRol };
   if (!idRol) {
     showSkeleton('cuerpoPermisos', 5, [
       ['lg','sm','sm','sm','sm'],
@@ -411,6 +383,30 @@ function cargarPermisos() {
     .then(r => r.json())
     .then(data => renderTablaPermisos(data))
     .catch(() => Swal.fire('Error', 'No se pudieron cargar los permisos.', 'error'));
+}
+function cargarPermisosUsuario(idUsuario) {
+  if (!idUsuario) {
+    cargarPermisos();
+    return;
+  }
+  window.permisosObjetivo = { tipo: 'usuario', id: idUsuario };
+  showSkeleton('cuerpoPermisos', 5, [
+    ['lg','sm','sm','sm','sm'], ['lg','sm','sm','sm','sm']
+  ]);
+  const idRol = document.getElementById('selectRol').value;
+  Promise.all([
+    fetch(`/api/seguridad/usuarios/${idUsuario}/permisos`).then(r => r.json()),
+    fetch(`/api/seguridad/permisos/obtener/${idRol}`).then(r => r.json())
+  ])
+    .then(([excepciones, heredados]) => {
+      const porModulo = {};
+      (Array.isArray(excepciones) ? excepciones : []).forEach(p => { porModulo[p.id_modulo] = p; });
+      const efectivos = (Array.isArray(heredados) ? heredados : []).map(p => ({
+        ...p, ...(porModulo[p.id_modulo] || {})
+      }));
+      renderTablaPermisos(efectivos);
+    })
+    .catch(() => Swal.fire('Error', 'No se pudieron cargar los permisos del usuario.', 'error'));
 }
 function renderTablaPermisos(filas) {
   const tb = document.getElementById('cuerpoPermisos');
@@ -433,6 +429,9 @@ function renderTablaPermisos(filas) {
   });
 }
 function guardarPermisos() {
+  const objetivo = window.permisosObjetivo || {
+    tipo: 'rol', id: document.getElementById('selectRol').value
+  };
   const idRol = document.getElementById('selectRol').value;
   if (!idRol) return Swal.fire('Aviso', 'Seleccione un rol.', 'warning');
   const checks = document.querySelectorAll('#cuerpoPermisos .perm-check');
@@ -443,17 +442,28 @@ function guardarPermisos() {
     if (!permisos[id]) permisos[id] = { id_modulo: parseInt(id, 10), puede_ver: 0, puede_crear: 0, puede_editar: 0, puede_eliminar: 0 };
     permisos[id][campo] = c.checked ? 1 : 0;
   });
-  fetch('/api/seguridad/permisos/guardar', {
+  const endpoint = objetivo.tipo === 'usuario'
+    ? '/api/seguridad/usuarios/permisos/guardar'
+    : '/api/seguridad/permisos/guardar';
+  const body = objetivo.tipo === 'usuario'
+    ? { id_usuario: parseInt(objetivo.id, 10), permisos: Object.values(permisos) }
+    : { id_rol: parseInt(objetivo.id, 10), permisos: Object.values(permisos) };
+  fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id_rol: parseInt(idRol, 10), permisos: Object.values(permisos) })
+    credentials: 'same-origin',
+    body: JSON.stringify(body)
   })
-  .then(r => r.json())
+  .then(async r => {
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.message || `Error HTTP ${r.status}`);
+    return data;
+  })
   .then(d => {
     if (d.success) Swal.fire('Listo', d.message, 'success').then(() => location.reload());
     else Swal.fire('Error', d.message, 'error');
   })
-  .catch(() => Swal.fire('Error', 'Error de conexión.', 'error'));
+  .catch(error => Swal.fire('Error', error.message || 'Error de conexión.', 'error'));
 }
 
 // ============================================================
@@ -476,46 +486,10 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('btnGuardarModulo').addEventListener('click', guardarModulo);
   document.getElementById('btnGuardarPermisos').addEventListener('click', guardarPermisos);
   document.getElementById('selectRol').addEventListener('change', cargarPermisos);
+  document.getElementById('selectUsuariosPorRol').addEventListener('change', function () {
+    cargarPermisosUsuario(this.value);
+  });
   document.getElementById('buscarRol').addEventListener('keyup', () => filaFiltro('buscarRol', 'cuerpoRoles'));
   document.getElementById('buscarModulo').addEventListener('keyup', () => filaFiltro('buscarModulo', 'cuerpoModulos'));
 
-  document.getElementById('cuerpoModulos').addEventListener('click', function(e) {
-    const celda = e.target.closest('.url-editable');
-    if (!celda) return;
-    const idModulo = celda.dataset.id;
-    const urlActual = celda.dataset.url;
-    if (!idModulo || urlActual === undefined) return;
-
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = urlActual;
-    input.className = 'url-editable-input';
-    input.maxLength = 120;
-
-    celda.replaceWith(input);
-    input.focus();
-    input.select();
-
-    let guardando = false;
-    function guardar() {
-      if (guardando) return;
-      guardando = true;
-      const nuevaUrl = input.value.trim();
-      if (nuevaUrl !== urlActual) {
-        guardarUrlModulo(idModulo, nuevaUrl);
-      } else {
-        cargarModulos();
-      }
-    }
-    input.addEventListener('blur', guardar);
-    input.addEventListener('keydown', function(ev) {
-      if (ev.key === 'Enter') {
-        ev.preventDefault();
-        input.blur();
-      } else if (ev.key === 'Escape') {
-        guardando = true;
-        cargarModulos();
-      }
-    });
-  });
 });

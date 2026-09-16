@@ -71,7 +71,8 @@ from controllers.controller_seguridad import (
     registrar_rol_controller, listar_roles_controller, obtener_rol_controller,
     actualizar_rol_controller, eliminar_rol_controller,
     obtener_permisos_rol_controller, guardar_permisos_controller,
-    obtener_usuarios_por_rol_controller
+    obtener_usuarios_por_rol_controller, obtener_permisos_usuario_controller,
+    guardar_permisos_usuario_controller
 )
 from controllers.UserController import verificar_permiso
 app.register_blueprint(empresa_bp)
@@ -1390,12 +1391,16 @@ def viewFormPermisos():
 def api_listar_modulos():
     if 'conectado' not in session:
         return jsonify([]), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(listar_modulos_controller())
 
 @home_bp.route('/api/seguridad/modulos/registrar', methods=['POST'])
 def api_registrar_modulo():
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(registrar_modulo_controller(data)), 200
 
@@ -1403,12 +1408,16 @@ def api_registrar_modulo():
 def api_obtener_modulo(id_modulo):
     if 'conectado' not in session:
         return jsonify(None), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(obtener_modulo_controller(id_modulo) or None)
 
 @home_bp.route('/api/seguridad/modulos/actualizar/<int:id_modulo>', methods=['PUT', 'POST'])
 def api_actualizar_modulo(id_modulo):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(actualizar_modulo_controller(id_modulo, data)), 200
 
@@ -1416,18 +1425,24 @@ def api_actualizar_modulo(id_modulo):
 def api_eliminar_modulo(id_modulo):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(eliminar_modulo_controller(id_modulo)), 200
 
 @home_bp.route('/api/seguridad/roles/listar', methods=['GET'])
 def api_listar_roles():
     if 'conectado' not in session:
         return jsonify([]), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(listar_roles_controller())
 
 @home_bp.route('/api/seguridad/roles/registrar', methods=['POST'])
 def api_registrar_rol():
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(registrar_rol_controller(data)), 200
 
@@ -1435,12 +1450,16 @@ def api_registrar_rol():
 def api_obtener_rol(id_rol):
     if 'conectado' not in session:
         return jsonify(None), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(obtener_rol_controller(id_rol) or None)
 
 @home_bp.route('/api/seguridad/roles/actualizar/<int:id_rol>', methods=['PUT', 'POST'])
 def api_actualizar_rol(id_rol):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     data = request.get_json(silent=True) or request.form.to_dict()
     return jsonify(actualizar_rol_controller(id_rol, data)), 200
 
@@ -1448,18 +1467,24 @@ def api_actualizar_rol(id_rol):
 def api_eliminar_rol(id_rol):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(eliminar_rol_controller(id_rol)), 200
 
 @home_bp.route('/api/seguridad/permisos/obtener/<int:id_rol>', methods=['GET'])
 def api_obtener_permisos_rol(id_rol):
     if 'conectado' not in session:
         return jsonify([]), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(obtener_permisos_rol_controller(id_rol))
 
 @home_bp.route('/api/seguridad/permisos/guardar', methods=['POST'])
 def api_guardar_permisos_rol():
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     data = request.get_json(silent=True) or request.form.to_dict()
     id_rol = data.get('id_rol')
     permisos = data.get('permisos') or []
@@ -1476,7 +1501,27 @@ def api_guardar_permisos_rol():
 def api_obtener_usuarios_por_rol(id_rol):
     if 'conectado' not in session:
         return jsonify({'success': False, 'message': 'Sesión no válida', 'usuarios': []}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
     return jsonify(obtener_usuarios_por_rol_controller(id_rol))
+
+@home_bp.route('/api/seguridad/usuarios/<int:id_usuario>/permisos', methods=['GET'])
+def api_obtener_permisos_usuario(id_usuario):
+    if 'conectado' not in session:
+        return jsonify([]), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
+    return jsonify(obtener_permisos_usuario_controller(id_usuario))
+
+@home_bp.route('/api/seguridad/usuarios/permisos/guardar', methods=['POST'])
+def api_guardar_permisos_usuario():
+    if 'conectado' not in session:
+        return jsonify({'success': False, 'message': 'Sesión no válida'}), 401
+    if not verificar_permiso('roles_permisos'):
+        return jsonify({'success': False, 'message': 'Permiso insuficiente.'}), 403
+    data = request.get_json(silent=True) or {}
+    return jsonify(guardar_permisos_usuario_controller(
+        data.get('id_usuario'), data.get('permisos', []))), 200
 
 """Modulo de Permisos - Fin"""
 

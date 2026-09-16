@@ -1,7 +1,8 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from app import app
+from models.model_contratacion import ContratacionModel
 
 
 class ContratacionesBitacoraTestCase(unittest.TestCase):
@@ -40,6 +41,52 @@ class ContratacionesBitacoraTestCase(unittest.TestCase):
             self.assertEqual(args[1], 'Contrataciones')
             self.assertEqual(args[2], 'CREAR')
 
+    def test_registrar_contratacion_reintenta_si_hay_id_duplicado(self):
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+
+        select_calls = [
+            (5,),
+            (5,),
+            (6,),
+        ]
+
+        def execute_side_effect(sql, params=None):
+            if 'SELECT COALESCE(MAX(id_contratacion)' in sql:
+                mock_cursor.fetchone.return_value = select_calls.pop(0)
+                return None
+            if 'INSERT INTO contratacion' in sql:
+                if mock_cursor.execute.call_count == 2:
+                    raise type('DuplicateError', (Exception,), {'errno': 1062})('Duplicate entry')
+                return None
+            return None
+
+        mock_cursor.execute.side_effect = execute_side_effect
+        mock_cursor.fetchone.side_effect = [
+            (5,),
+            (5,),
+            (6,),
+        ]
+
+        with patch('models.model_contratacion.connectionBD', return_value=mock_conn):
+            ok, msg = ContratacionModel().registrar_contrataciones({
+                'descripcion': 'Contrato de prueba',
+                'empresa_ganadora': 'Empresa S.A.',
+                'numero_contrato': 'CTR-002',
+                'monto': '1000',
+                'fecha_inicio_procedimiento': '2024-01-01',
+                'fecha_adjudicacion': '2024-01-02',
+                'tipo_contrato': 'Contrato de Obra',
+                'modalidad': 'Concurso Abierto',
+                'objeto': 'Ejecución de Obras',
+                'observacion': 'Prueba',
+                'fecha_registro': '2024-01-03',
+                'empresa_rif': 'J-12345678-9'
+            })
+
+        self.assertTrue(ok)
+        self.assertEqual(msg, 'Contratación registrada correctamente.')
 
 if __name__ == '__main__':
     unittest.main()

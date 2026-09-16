@@ -296,9 +296,14 @@
             <div class="row mb-3">
               <div class="col-md-12">
                 <label for="problematica" class="form-label fw-semibold">Descripción Detallada</label>
-                <textarea class="form-control bg-white" name="problematica" minlength="15" maxlength="255" rows="3" style="resize: none;" required placeholder="Describa la problemática de forma clara y concisa (Mínimo 15 caracteres)..."></textarea>
-                <span class="invalid-feedback">Describa la problemática (mínimo 15 caracteres)</span>
-                <span class="valid-feedback">Correcto</span>
+                <textarea class="form-control bg-white" name="problematica" id="problematica" minlength="15" maxlength="512" rows="3" style="resize: none;" required placeholder="Describa la problemática de forma clara y concisa (Mínimo 15 caracteres)..."></textarea>
+                <div class="mt-1">
+                  <span class="invalid-feedback">Describa la problemática (mínimo 15 caracteres)</span>
+                  <span class="valid-feedback">Correcto</span>
+                </div>
+                <div class="text-end mt-1">
+                  <small class="text-muted">Caracteres: <strong id="conteo_problematica">0</strong>/512</small>
+                </div>
               </div>
             </div>
           </div>
@@ -408,37 +413,47 @@ document.addEventListener('DOMContentLoaded', function() {
        }
      });
    };
-  if (tipoSolicitudSelect) {
-    tipoSolicitudSelect.addEventListener('change', function() {
-      var valor = this.value.trim();
+if (tipoSolicitudSelect) {
+     tipoSolicitudSelect.addEventListener('change', function() {
+       var valor = this.value.trim();
 
-      limpiarSeccion(seccionComunidad);
-      limpiarSeccion(seccionInstitucion);
-      limpiarSeccion(seccionParticular);
+       limpiarSeccion(seccionComunidad);
+       limpiarSeccion(seccionInstitucion);
+       limpiarSeccion(seccionParticular);
 
-      if (valor === '') {
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Atención',
-            text: 'Debe seleccionar un tipo de solicitante válido.',
-            confirmButtonText: 'Entendido'
-          });
-        } else {
-          alert('Debe seleccionar un tipo de solicitante válido.');
-        }
-        return;
-      }
+       if (valor === '') {
+         if (typeof Swal !== 'undefined') {
+           Swal.fire({
+             icon: 'warning',
+             title: 'Atención',
+             text: 'Debe seleccionar un tipo de solicitante válido.',
+             confirmButtonText: 'Entendido'
+           });
+         } else {
+           alert('Debe seleccionar un tipo de solicitante válido.');
+         }
+         return;
+       }
 
-      if (valor === 'Comunidad') {
-        habilitarSeccion(seccionComunidad);
-      } else if (valor === 'Institucion') {
-        habilitarSeccion(seccionInstitucion);
-      } else if (valor === 'Particular') {
-        habilitarSeccion(seccionParticular);
-      }
-    });
-  }
-});
+       if (valor === 'Comunidad') {
+         habilitarSeccion(seccionComunidad);
+       } else if (valor === 'Institucion') {
+         habilitarSeccion(seccionInstitucion);
+       } else if (valor === 'Particular') {
+         habilitarSeccion(seccionParticular);
+       }
+     });
+   }
+
+   // Contador de caracteres para la descripción de la problemática
+   const problematicaTextarea = form.querySelector('#problematica');
+   const conteoProblematica = document.getElementById('conteo_problematica');
+   if (problematicaTextarea && conteoProblematica) {
+     conteoProblematica.textContent = problematicaTextarea.value.length;
+     problematicaTextarea.addEventListener('input', function() {
+       conteoProblematica.textContent = this.value.length;
+     });
+   }
+ });
 </script>
 {% endblock %}

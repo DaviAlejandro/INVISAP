@@ -207,20 +207,30 @@ class PublicacionModel(BaseModel):
             conexion = connectionBD_invilara()
             cursor = conexion.cursor()
             
-            cursor.execute("SELECT COALESCE(MAX(id_publicacion), 0) + 1 AS siguiente_id FROM publicacion")
-            fila = cursor.fetchone()
-            siguiente_id = fila[0] if fila else 1
-            
-            sql = """INSERT INTO publicacion 
-                     (id_publicacion, titulo_publicacion, nombre_responsable, tipo_publicacion, 
-                      fecha_publicacion, informe_avance_obra_id_informe, estado, cuerpo_publicacion) 
-                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-            valores = (siguiente_id, self.__titulo, self.__responsable, self.__tipo, 
-                       datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
-                       id_inf_val, 1, self.__cuerpo)
-            cursor.execute(sql, valores)
-            conexion.commit()
-            return cursor.rowcount > 0
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_publicacion), 0) + 1 AS siguiente_id FROM publicacion")
+                fila = cursor.fetchone()
+                siguiente_id = fila[0] if fila else 1
+
+                sql = """INSERT INTO publicacion 
+                         (id_publicacion, titulo_publicacion, nombre_responsable, tipo_publicacion, 
+                          fecha_publicacion, informe_avance_obra_id_informe, estado, cuerpo_publicacion) 
+                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+                valores = (siguiente_id, self.__titulo, self.__responsable, self.__tipo, 
+                           datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+                           id_inf_val, 1, self.__cuerpo)
+                try:
+                    cursor.execute(sql, valores)
+                    conexion.commit()
+                    return cursor.rowcount > 0
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conexion.rollback()
+            raise ValueError("No se pudo reservar un ID único para publicacion tras 3 intentos")
         except Exception as e:
             print(f"Error crítico al registrar publicación: {e}")
             return False

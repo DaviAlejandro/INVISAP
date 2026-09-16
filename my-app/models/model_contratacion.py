@@ -59,28 +59,41 @@ class ContratacionModel(BaseModel):
             
         try:
             cursor = conexion.cursor()
-            cursor.execute("SELECT COALESCE(MAX(id_contratacion), 0) + 1 AS siguiente_id FROM contratacion")
-            fila = cursor.fetchone()
-            siguiente_id = fila[0] if fila else 1
 
-            sql = """INSERT INTO contratacion (
-                id_contratacion, descripcion, empresa_ganadora, numero_contrato, monto, 
-                fecha_inicio_procedimiento, fecha_adjudicacion, tipo_contrato, 
-                modalidad, objeto, observacion, fecha_registro, empresa_rif, estado
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1)"""
-            
-            valores = (
-                siguiente_id, datos.get('descripcion'), datos.get('empresa_ganadora'), 
-                datos.get('numero_contrato'), datos.get('monto'), 
-                datos.get('fecha_inicio_procedimiento'), datos.get('fecha_adjudicacion'), 
-                datos.get('tipo_contrato'), datos.get('modalidad'), 
-                datos.get('objeto'), datos.get('observacion'), 
-                datos.get('fecha_registro'), datos.get('empresa_rif')
-            )
-            
-            cursor.execute(sql, valores)
-            conexion.commit()
-            return True, "Contratación registrada correctamente."
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_contratacion), 0) + 1 AS siguiente_id FROM contratacion")
+                fila = cursor.fetchone()
+                siguiente_id = fila[0] if fila else 1
+
+                sql = """INSERT INTO contratacion (
+                    id_contratacion, descripcion, empresa_ganadora, numero_contrato, monto, 
+                    fecha_inicio_procedimiento, fecha_adjudicacion, tipo_contrato, 
+                    modalidad, objeto, observacion, fecha_registro, empresa_rif, estado
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1)"""
+                
+                valores = (
+                    siguiente_id, datos.get('descripcion'), datos.get('empresa_ganadora'), 
+                    datos.get('numero_contrato'), datos.get('monto'), 
+                    datos.get('fecha_inicio_procedimiento'), datos.get('fecha_adjudicacion'), 
+                    datos.get('tipo_contrato'), datos.get('modalidad'), 
+                    datos.get('objeto'), datos.get('observacion'), 
+                    datos.get('fecha_registro'), datos.get('empresa_rif')
+                )
+
+                try:
+                    cursor.execute(sql, valores)
+                    conexion.commit()
+                    return True, "Contratación registrada correctamente."
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conexion.rollback()
+
+            print("--- [MODELO] No se pudo reservar un ID único para contratación tras 3 intentos ---")
+            return False, "No se pudo registrar la contratación por conflicto de ID."
             
         except Exception as e:
             print(f"--- [MODELO] ERROR SQL INSERT: {e} ---") 

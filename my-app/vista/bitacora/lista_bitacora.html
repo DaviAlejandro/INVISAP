@@ -106,7 +106,7 @@
       </span>
       <span class="text-muted small">
         {% if total_registros %}
-          Mostrando {{ primera_fila }}-{{ ultima_fila }} de {{ total_registros }} registros
+          Mostrando {{ primera_fila }}-{{ ultima_fila }} de {{ total_registros }} registros totales
         {% else %}
           No hay registros para mostrar
         {% endif %}
@@ -229,7 +229,9 @@
               <p class="mb-0 small opacity-75 mt-1" id="modalDetalleBitacoraSubtitle">Información completa del registro</p>
             </div>
           </div>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <button type="button" class="btn-close-detalle" data-bs-dismiss="modal" aria-label="Cerrar">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
         </div>
        <div class="modal-body p-4">
          <div class="d-flex flex-column gap-3">

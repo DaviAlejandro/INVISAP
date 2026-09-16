@@ -29,9 +29,11 @@
     <div class="d-flex flex-column">
       <h5 class="mb-2 text-primary fw-bold">GESTIÓN DE OBRAS Y PROYECTOS</h5>
       <div>
+        {% if puede_crear %}
         <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalNuevaObra">
           <i class="bx bx-plus"></i> Registrar Obra
         </button>
+        {% endif %}
       </div>
     </div>
   </div>   
@@ -72,8 +74,12 @@
             <td class="text-center">
               <div class="d-inline-flex gap-1 align-items-center">
                 <button class="btn btn-outline-info btn-sm btn-accion-obra" title="Ver detalle" onclick="verObra({{ obra.id_obra }})"><i class="bx bx-show"></i></button>
+                {% if puede_editar %}
                 <a href="{{ url_for('obra_bp.vista_editar_obra', id_obra=obra.id_obra) }}" class="btn btn-outline-warning btn-sm btn-accion-obra" title="Editar"><i class="bx bx-edit"></i></a>
+                {% endif %}
+                {% if puede_eliminar %}
                 <button class="btn btn-outline-danger btn-sm btn-accion-obra btn-eliminar-obra" title="Eliminar" data-bs-toggle="modal" data-bs-target="#modalEliminarObra" data-id="{{ obra.id_obra }}" data-nombre="{{ obra.titulo_obra }}"><i class="bx bx-trash"></i></button>
+                {% endif %}
               </div>
             </td>           
           </tr>           

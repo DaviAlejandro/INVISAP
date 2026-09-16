@@ -48,27 +48,40 @@ class BitacoraModel(BaseModel):
             cursor = conn.cursor()
             ahora = datetime.now()
 
-            cursor.execute(
-                "SELECT COALESCE(MAX(id_bitacora), 0) + 1 AS siguiente_id FROM bitacora"
-            )
-            fila = cursor.fetchone()
-            if isinstance(fila, dict):
-                siguiente_id = fila.get('siguiente_id', 1)
-            else:
-                siguiente_id = fila[0] if fila else 1
-
             sql = """
                 INSERT INTO bitacora
                     (id_bitacora, usuario, id_modulo, modulo, accion, fecha,
                      hora_inicio_sesion, hora_cierre_sesion, usuarios_id_usuarios)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(sql, (
-                siguiente_id, usuario, 0, modulo, accion,
-                ahora, ahora, ahora, id_usuario
-            ))
-            conn.commit()
-            return True
+
+            for _ in range(3):
+                cursor.execute(
+                    "SELECT COALESCE(MAX(id_bitacora), 0) + 1 AS siguiente_id FROM bitacora"
+                )
+                fila = cursor.fetchone()
+                if isinstance(fila, dict):
+                    siguiente_id = fila.get('siguiente_id', 1)
+                else:
+                    siguiente_id = fila[0] if fila else 1
+
+                try:
+                    cursor.execute(sql, (
+                        siguiente_id, usuario, 0, modulo, accion,
+                        ahora, ahora, ahora, id_usuario
+                    ))
+                    conn.commit()
+                    return True
+                except Exception as insert_error:
+                    error_code = getattr(insert_error, 'errno', None)
+                    if error_code is None and insert_error.args:
+                        error_code = insert_error.args[0]
+                    if error_code != 1062:
+                        raise
+                    conn.rollback()
+
+            print("[BitacoraModel._sql_insertar] No se pudo reservar un ID único tras 3 intentos")
+            return False
         except Exception as e:
             print(f"[BitacoraModel._sql_insertar] Error: {e}")
             return False
@@ -81,7 +94,7 @@ class BitacoraModel(BaseModel):
                 except Exception:
                     pass
 
-    def _sql_obtener_todos(self, limit: int = 500) -> list:
+    def _sql_obtener_todos(self, limit: int | None = None) -> list:
         conn = cursor = None
         try:
             conn = self._con()
@@ -94,9 +107,12 @@ class BitacoraModel(BaseModel):
                        usuarios_id_usuarios
                 FROM bitacora
                 ORDER BY fecha DESC
-                LIMIT %s
             """
-            cursor.execute(sql, (limit,))
+            if limit is not None:
+                sql += " LIMIT %s"
+                cursor.execute(sql, (limit,))
+            else:
+                cursor.execute(sql)
             return cursor.fetchall()
         except Exception as e:
             print(f"[BitacoraModel._sql_obtener_todos] Error: {e}")
@@ -329,9 +345,9 @@ class BitacoraModel(BaseModel):
         id_usuario = int(id_usuario) if str(id_usuario).isdigit() else 1
         return self._sql_insertar(usuario, id_usuario, modulo, accion, descripcion)
 
-    def obtener_todos(self) -> list:
-        """Retorna los últimos 500 registros de la bitácora."""
-        return self._sql_obtener_todos(limit=500)
+    def obtener_todos(self, limit: int | None = None) -> list:
+        """Retorna los registros de la bitácora, sin limitar artificialmente el total."""
+        return self._sql_obtener_todos(limit=limit)
 
     def filtrar_por_usuario(self, usuario: str) -> list:
         """Filtra registros de bitácora por nombre de usuario."""

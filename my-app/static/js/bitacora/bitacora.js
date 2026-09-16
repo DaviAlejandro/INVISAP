@@ -163,7 +163,7 @@ function renderizarBitacoras(registros) {
     let html = '';
     paginaRegistros.forEach((r, idx) => {
         html += `<tr class="fila-registro">
-            <td class="text-muted" style="padding: 0.85rem 1.2rem; font-size:0.8rem;">${inicio + idx + 1}</td>
+            <td class="text-muted" style="padding: 0.85rem 1.2rem; font-size:0.8rem;">${r.id_bitacora || inicio + idx + 1}</td>
             <td style="padding: 0.85rem 1.2rem;">
               <span class="usuario-chip">${r.usuario || ' '}</span>
             </td>
@@ -215,12 +215,36 @@ function renderizarControlesBitacora(totalPaginas) {
     botonAnterior.innerHTML = `<button class="page-link" onclick="cambiarPaginaBitacora(${paginaActualBitacora - 1})">Anterior</button>`;
     controls.appendChild(botonAnterior);
 
-    for (let i = 1; i <= totalPaginas; i++) {
-        const li = document.createElement('li');
-        li.className = `page-item ${i === paginaActualBitacora ? 'active' : ''}`;
-        li.innerHTML = `<button class="page-link" onclick="cambiarPaginaBitacora(${i})">${i}</button>`;
-        controls.appendChild(li);
+    const paginas = [];
+
+    if (totalPaginas <= 7) {
+        for (let i = 1; i <= totalPaginas; i++) {
+            paginas.push(i);
+        }
+    } else if (paginaActualBitacora <= 3) {
+        paginas.push(1, 2, 3, 4, 5);
+        paginas.push('ellipsis-end', totalPaginas);
+    } else if (paginaActualBitacora >= totalPaginas - 2) {
+        paginas.push(1, 'ellipsis-start');
+        paginas.push(totalPaginas - 4, totalPaginas - 3, totalPaginas - 2, totalPaginas - 1, totalPaginas);
+    } else {
+        paginas.push(1, 'ellipsis-start', paginaActualBitacora - 1, paginaActualBitacora, paginaActualBitacora + 1, 'ellipsis-end', totalPaginas);
     }
+
+    paginas.forEach((item) => {
+        if (item === 'ellipsis-start' || item === 'ellipsis-end') {
+            const li = document.createElement('li');
+            li.className = 'page-item disabled';
+            li.innerHTML = '<span class="page-link">…</span>';
+            controls.appendChild(li);
+            return;
+        }
+
+        const li = document.createElement('li');
+        li.className = `page-item ${item === paginaActualBitacora ? 'active' : ''}`;
+        li.innerHTML = `<button class="page-link" onclick="cambiarPaginaBitacora(${item})">${item}</button>`;
+        controls.appendChild(li);
+    });
 
     const botonSiguiente = document.createElement('li');
     botonSiguiente.className = `page-item ${paginaActualBitacora === totalPaginas ? 'disabled' : ''}`;

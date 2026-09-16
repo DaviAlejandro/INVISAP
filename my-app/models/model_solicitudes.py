@@ -194,55 +194,115 @@ class SolicitudModel(BaseModel):
         return row['id_persona'] if isinstance(row, dict) else (row[0] if row else None)
 
     def _sql_insertar_persona(self, cursor, datos: dict) -> int:
-        cursor.execute("SELECT COALESCE(MAX(id_persona), 0) + 1 AS siguiente_id FROM persona")
-        fila = cursor.fetchone()
-        siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+        for _ in range(3):
+            cursor.execute("SELECT COALESCE(MAX(id_persona), 0) + 1 AS siguiente_id FROM persona")
+            fila = cursor.fetchone()
+            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
 
-        sql = """
-            INSERT INTO persona (id_persona, cedula_persona, direccion, parroquia, municipio, telefono, correo)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-        cedula = int(''.join(filter(str.isdigit, str(datos['cedula_persona']))) or 0)
-        cursor.execute(sql, (
-            siguiente_id, cedula, datos['direccion'], datos['parroquia'],
-            datos['municipio'], datos['telefono'], datos['correo']
-        ))
-        return siguiente_id
+            sql = """
+                INSERT INTO persona (id_persona, cedula_persona, direccion, parroquia, municipio, telefono, correo)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            cedula = int(''.join(filter(str.isdigit, str(datos['cedula_persona']))) or 0)
+            try:
+                cursor.execute(sql, (
+                    siguiente_id, cedula, datos['direccion'], datos['parroquia'],
+                    datos['municipio'], datos['telefono'], datos['correo']
+                ))
+                return siguiente_id
+            except Exception as e:
+                error_code = getattr(e, 'errno', None)
+                if error_code is None and e.args:
+                    error_code = e.args[0]
+                if error_code != 1062:
+                    raise
+                if hasattr(cursor, 'connection') and cursor.connection:
+                    cursor.connection.rollback()
+
+        raise ValueError("No se pudo reservar un ID único para persona tras 3 intentos")
 
     def _sql_insertar_subtipo(self, cursor, persona_id: int, datos: dict):
         tipo = datos['tipo_solicitante']
         if tipo == 'Particular':
-            cursor.execute("SELECT COALESCE(MAX(id_particular), 0) + 1 AS siguiente_id FROM particular")
-            fila = cursor.fetchone()
-            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
-            sql = "INSERT INTO particular (id_particular, nombre, apellido, persona_id_persona) VALUES (%s, %s, %s, %s)"
-            cursor.execute(sql, (siguiente_id, datos.get('nombre'), datos.get('apellido'), persona_id))
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_particular), 0) + 1 AS siguiente_id FROM particular")
+                fila = cursor.fetchone()
+                siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+                sql = "INSERT INTO particular (id_particular, nombre, apellido, persona_id_persona) VALUES (%s, %s, %s, %s)"
+                try:
+                    cursor.execute(sql, (siguiente_id, datos.get('nombre'), datos.get('apellido'), persona_id))
+                    return
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    if hasattr(cursor, 'connection') and cursor.connection:
+                        cursor.connection.rollback()
+            raise ValueError("No se pudo reservar un ID único para particular tras 3 intentos")
         elif tipo == 'Comunidad':
-            cursor.execute("SELECT COALESCE(MAX(id_comunidad), 0) + 1 AS siguiente_id FROM comunidad")
-            fila = cursor.fetchone()
-            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
-            sql = "INSERT INTO comunidad (id_comunidad, nombre_comunidad, ambito, sector, persona_id_persona) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(sql, (siguiente_id, datos.get('nombre_comunidad'), datos.get('ambito'), datos.get('sector'), persona_id))
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_comunidad), 0) + 1 AS siguiente_id FROM comunidad")
+                fila = cursor.fetchone()
+                siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+                sql = "INSERT INTO comunidad (id_comunidad, nombre_comunidad, ambito, sector, persona_id_persona) VALUES (%s, %s, %s, %s, %s)"
+                try:
+                    cursor.execute(sql, (siguiente_id, datos.get('nombre_comunidad'), datos.get('ambito'), datos.get('sector'), persona_id))
+                    return
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    if hasattr(cursor, 'connection') and cursor.connection:
+                        cursor.connection.rollback()
+            raise ValueError("No se pudo reservar un ID único para comunidad tras 3 intentos")
         elif tipo == 'Institucion':
-            cursor.execute("SELECT COALESCE(MAX(id_institucion), 0) + 1 AS siguiente_id FROM institucion")
-            fila = cursor.fetchone()
-            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
-            sql = "INSERT INTO institucion (id_institucion, nombre_representante, razon_social, persona_id_persona) VALUES (%s, %s, %s, %s)"
-            cursor.execute(sql, (siguiente_id, datos.get('nombre_representante'), datos.get('razon_social'), persona_id))
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_institucion), 0) + 1 AS siguiente_id FROM institucion")
+                fila = cursor.fetchone()
+                siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+                sql = "INSERT INTO institucion (id_institucion, nombre_representante, razon_social, persona_id_persona) VALUES (%s, %s, %s, %s)"
+                try:
+                    cursor.execute(sql, (siguiente_id, datos.get('nombre_representante'), datos.get('razon_social'), persona_id))
+                    return
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    if hasattr(cursor, 'connection') and cursor.connection:
+                        cursor.connection.rollback()
+            raise ValueError("No se pudo reservar un ID único para institucion tras 3 intentos")
 
     def _sql_asegurar_prioridad(self, cursor) -> int:
         cursor.execute("SELECT id_gestion_prioridad FROM prioridad LIMIT 1")
         row = cursor.fetchone()
         if row: return row['id_gestion_prioridad'] if isinstance(row, dict) else row[0]
 
-        cursor.execute("SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
-        fila = cursor.fetchone()
-        siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
+        for _ in range(3):
+            cursor.execute("SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+            fila = cursor.fetchone()
+            siguiente_id = fila['siguiente_id'] if isinstance(fila, dict) else (fila[0] if fila else 1)
 
-        sql = """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, fecha_asignacion, responsable_ajuste, justificacion_cambio)
-                 VALUES (%s, %s, %s, %s, %s)"""
-        cursor.execute(sql, (siguiente_id, 1.0, datetime.now(), 'Sistema', 'Default'))
-        return siguiente_id
+            sql = """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, fecha_asignacion, responsable_ajuste, justificacion_cambio)
+                     VALUES (%s, %s, %s, %s, %s)"""
+            try:
+                cursor.execute(sql, (siguiente_id, 1.0, datetime.now(), 'Sistema', 'Default'))
+                return siguiente_id
+            except Exception as e:
+                error_code = getattr(e, 'errno', None)
+                if error_code is None and e.args:
+                    error_code = e.args[0]
+                if error_code != 1062:
+                    raise
+                if hasattr(cursor, 'connection') and cursor.connection:
+                    cursor.connection.rollback()
+
+        raise ValueError("No se pudo reservar un ID único para prioridad tras 3 intentos")
 
 
     # --- MÉTODOS PÚBLICOS (API del Modelo) ---
@@ -266,23 +326,34 @@ class SolicitudModel(BaseModel):
 
             prioridad_id = self._sql_asegurar_prioridad(cursor)
 
-            cursor.execute("SELECT COALESCE(MAX(id_solicitudes), 0) + 1 AS siguiente_id FROM solicitudes")
-            fila_id = cursor.fetchone()
-            siguiente_id = fila_id['siguiente_id'] if isinstance(fila_id, dict) else (fila_id[0] if fila_id else 1)
-            
-            sql_solicitud = """
-                INSERT INTO solicitudes (id_solicitudes, fecha, tipo_solicitud, estatus_solicitud, problematica, 
-                                         persona_id_persona, prioridad_id_gestion_prioridad)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(sql_solicitud, (
-                siguiente_id, self._fecha, self._tipo_solicitud, self._estatus_solicitud, 
-                self._problematica, persona_id, prioridad_id
-            ))
-            
-            self._id_solicitudes = siguiente_id
-            conn.commit()
-            return self._id_solicitudes
+            for _ in range(3):
+                cursor.execute("SELECT COALESCE(MAX(id_solicitudes), 0) + 1 AS siguiente_id FROM solicitudes")
+                fila_id = cursor.fetchone()
+                siguiente_id = fila_id['siguiente_id'] if isinstance(fila_id, dict) else (fila_id[0] if fila_id else 1)
+
+                sql_solicitud = """
+                    INSERT INTO solicitudes (id_solicitudes, fecha, tipo_solicitud, estatus_solicitud, problematica, 
+                                             persona_id_persona, prioridad_id_gestion_prioridad)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                try:
+                    cursor.execute(sql_solicitud, (
+                        siguiente_id, self._fecha, self._tipo_solicitud, self._estatus_solicitud, 
+                        self._problematica, persona_id, prioridad_id
+                    ))
+
+                    self._id_solicitudes = siguiente_id
+                    conn.commit()
+                    return self._id_solicitudes
+                except Exception as e:
+                    error_code = getattr(e, 'errno', None)
+                    if error_code is None and e.args:
+                        error_code = e.args[0]
+                    if error_code != 1062:
+                        raise
+                    conn.rollback()
+
+            raise ValueError("No se pudo reservar un ID único para solicitud tras 3 intentos")
         except Exception as e:
             print(f"Error guardar: {e}")
             if conn: conn.rollback()

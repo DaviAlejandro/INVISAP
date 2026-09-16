@@ -55,12 +55,6 @@ def connectionBD_invilara():
     except Exception as e:
         print(f"Error en la conexión a la base de datos: {e}")
         return None
-        connection = connectionBD()
-        if connection.is_connected():
-            return connection
-    except Exception as e:
-        print(f"Error en la conexión a la base de datos: {e}")
-        return None
     
 def connectionBD_seguridad():
     """Return a new MySQL connection. Reads configuration from env vars with sane defaults."""

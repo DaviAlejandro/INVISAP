@@ -92,9 +92,13 @@ class PrioridadModel(BaseModel):
 
     @staticmethod
     def _obtener_siguiente_id(cursor):
-        cursor.execute("SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
-        fila = cursor.fetchone()
-        return fila[0] if fila else 1
+        for _ in range(3):
+            cursor.execute("SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+            fila = cursor.fetchone()
+            siguiente_id = fila[0] if fila else 1
+            if siguiente_id:
+                return siguiente_id
+        return 1
 
     def registrar(self):
         self._validar_para_persistencia()
@@ -162,26 +166,34 @@ class PrioridadModel(BaseModel):
                           p.justificacion_cambio, p.tipo_obra, p.gravedad_sugerida,
                           p.origen, p.fecha_asignacion, p.responsable_ajuste,
                           p.estado,
-                          s.id_solicitudes          AS solicitud_id,
-                          s.problematica            AS solicitud_descripcion,
-                          s.tipo_solicitud          AS tipo_solicitud,
-                          s.nombre_solicitante      AS nombre_solicitante,
-                          s.cedula_persona          AS cedula_persona,
-                          s.telefono_solicitante    AS telefono,
-                          s.correo                  AS correo,
-                          s.direccion_solicitante   AS direccion,
-                          s.municipio               AS municipio,
-                          s.parroquia               AS parroquia,
-                          s.sector                  AS sector,
-                          s.ambito                  AS ambito,
-                          s.estatus_solicitud       AS estatus_solicitud,
-                          s.fecha                   AS fecha_solicitud,
-                          g.nivel_gravedad          AS nivel_gravedad,
-                          sm.color                  AS color_semaforo,
-                          sm.descripcion            AS descripcion_semaforo
+                          MAX(s.id_solicitudes)       AS solicitud_id,
+                          MAX(s.problematica)         AS solicitud_descripcion,
+                          MAX(s.tipo_solicitud)       AS tipo_solicitud,
+                          MAX(COALESCE(CONCAT(part.nombre, ' ', part.apellido), inst.razon_social, com.nombre_comunidad)) AS nombre_solicitante,
+                          MAX(per.cedula_persona)     AS cedula_persona,
+                          MAX(per.telefono)           AS telefono,
+                          MAX(per.correo)             AS correo,
+                          MAX(per.direccion)          AS direccion,
+                          MAX(per.municipio)          AS municipio,
+                          MAX(per.parroquia)          AS parroquia,
+                          MAX(com.sector)             AS sector,
+                          MAX(com.ambito)             AS ambito,
+                          MAX(s.estatus_solicitud)    AS estatus_solicitud,
+                          MAX(s.fecha)                AS fecha_solicitud,
+                          MAX(g.nivel_gravedad)       AS nivel_gravedad,
+                          MAX(sm.color)               AS color_semaforo,
+                          MAX(sm.descripcion)         AS descripcion_semaforo
                    FROM prioridad p
                    LEFT JOIN solicitudes s
                           ON s.prioridad_id_gestion_prioridad = p.id_gestion_prioridad
+                   LEFT JOIN persona per
+                          ON per.id_persona = s.persona_id_persona
+                   LEFT JOIN particular part
+                          ON part.persona_id_persona = per.id_persona
+                   LEFT JOIN institucion inst
+                          ON inst.persona_id_persona = per.id_persona
+                   LEFT JOIN comunidad com
+                          ON com.persona_id_persona = per.id_persona
                    LEFT JOIN solicitudes s2
                           ON s2.prioridad_id_gestion_prioridad = p.id_gestion_prioridad
                          AND s2.id_solicitudes <> s.id_solicitudes
@@ -189,6 +201,7 @@ class PrioridadModel(BaseModel):
                           ON ghp.prioridad_id_gestion_prioridad = p.id_gestion_prioridad
                    LEFT JOIN gravedad_obra g
                           ON g.id_gravedad = ghp.gravedad_obra_id_gravedad
+                        AND g.estado = 1
                    LEFT JOIN proyecto_has_solicitudes phs
                           ON phs.solicitudes_id_solicitudes = s.id_solicitudes
                    LEFT JOIN obra o
@@ -233,10 +246,12 @@ class PrioridadModel(BaseModel):
                 q_like = f"%{q}%"
                 where_clauses.append(
                     "(s.problematica LIKE %s "
-                    " OR s.direccion_solicitante LIKE %s "
-                    " OR s.municipio LIKE %s "
-                    " OR s.parroquia LIKE %s "
-                    " OR s.sector LIKE %s "
+                    " OR per.direccion LIKE %s "
+                    " OR per.municipio LIKE %s "
+                    " OR per.parroquia LIKE %s "
+                    " OR com.sector LIKE %s "
+                    " OR s.tipo_solicitud LIKE %s "
+                    " OR s.estatus_solicitud LIKE %s "
                     " OR DATE_FORMAT(s.fecha, '%%Y-%%m-%%d') LIKE %s "
                     " OR DATE_FORMAT(p.fecha_asignacion, '%%Y-%%m-%%d') LIKE %s "
                     " OR p.justificacion_cambio LIKE %s "
@@ -246,6 +261,7 @@ class PrioridadModel(BaseModel):
                 params.extend([
                     q_like, q_like, q_like, q_like, q_like,
                     q_like, q_like, q_like, q_like, q_like,
+                    q_like, q_like,
                 ])
 
             riesgo_upper = (riesgo or 'ALL').upper()
@@ -271,6 +287,10 @@ class PrioridadModel(BaseModel):
                 LEFT JOIN solicitudes s
                        ON s.prioridad_id_gestion_prioridad = p.id_gestion_prioridad
                       AND s.estado = 1
+                LEFT JOIN persona per
+                       ON per.id_persona = s.persona_id_persona
+                LEFT JOIN comunidad com
+                       ON com.persona_id_persona = per.id_persona
                 WHERE {where_sql}
             """
             cursor.execute(count_sql, params)
@@ -298,6 +318,10 @@ class PrioridadModel(BaseModel):
                 LEFT JOIN solicitudes s
                        ON s.prioridad_id_gestion_prioridad = p.id_gestion_prioridad
                       AND s.estado = 1
+                LEFT JOIN persona per
+                       ON per.id_persona = s.persona_id_persona
+                LEFT JOIN comunidad com
+                       ON com.persona_id_persona = per.id_persona
                 LEFT JOIN gravedad_obra_has_prioridad ghp
                        ON ghp.prioridad_id_gestion_prioridad = p.id_gestion_prioridad
                 LEFT JOIN gravedad_obra g
@@ -428,8 +452,12 @@ class PrioridadModel(BaseModel):
                     LEFT JOIN gravedad_obra g
                            ON g.id_gravedad = ghp.gravedad_obra_id_gravedad
                           AND g.estado = 1
+                          LEFT JOIN prioridad pri
+                              ON pri.id_gestion_prioridad = s.prioridad_id_gestion_prioridad
                     WHERE s.estado = 1
-                      AND (s.prioridad_id_gestion_prioridad IS NULL OR s.prioridad_id_gestion_prioridad = 0)
+                         AND (s.prioridad_id_gestion_prioridad IS NULL
+                               OR s.prioridad_id_gestion_prioridad = 0
+                               OR COALESCE(pri.estado, 0) = 0)
                     ORDER BY s.fecha ASC""",
                 ())
             return cursor.fetchall()
@@ -570,25 +598,36 @@ class PrioridadModel(BaseModel):
                      responsable, id_semaforo_defecto, pid))
                 id_prioridad = pid
             else:
-                cursor.execute(
-                    "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
-                fila = cursor.fetchone()
-                siguiente_id = fila[0] if fila else 1
+                for _ in range(3):
+                    cursor.execute(
+                        "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+                    fila = cursor.fetchone()
+                    siguiente_id = fila[0] if fila else 1
 
-                cursor.execute(
-                    """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
-                       gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
-                       justificacion_cambio, estado, semaforo_id)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (siguiente_id, rango, resultado_ia.get('tipo_obra'),
-                     resultado_ia.get('gravedad_sugerida'),
-                     resultado_ia.get('origen', 'ia'),
-                     datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
-                id_prioridad = siguiente_id
-                cursor.execute(
-                    "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
-                    (id_prioridad, id_solicitud))
-
+                    try:
+                        cursor.execute(
+                            """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
+                               gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
+                               justificacion_cambio, estado, semaforo_id)
+                               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                            (siguiente_id, rango, resultado_ia.get('tipo_obra'),
+                             resultado_ia.get('gravedad_sugerida'),
+                             resultado_ia.get('origen', 'ia'),
+                             datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
+                        id_prioridad = siguiente_id
+                        cursor.execute(
+                            "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
+                            (id_prioridad, id_solicitud))
+                        break
+                    except Exception as e:
+                        error_code = getattr(e, 'errno', None)
+                        if error_code is None and e.args:
+                            error_code = e.args[0]
+                        if error_code != 1062:
+                            raise
+                        conexion.rollback()
+                else:
+                    raise ValueError("No se pudo reservar un ID único para prioridad tras 3 intentos")
             conexion.commit()
             return {
                 "success": True,
@@ -653,26 +692,76 @@ class PrioridadModel(BaseModel):
                 conexion = connectionBD()
                 try:
                     cursor = conexion.cursor(dictionary=True, buffered=True)
+<<<<<<< HEAD
+                    for _ in range(3):
+                        cursor.execute(
+                            "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+                        fila = cursor.fetchone()
+                        siguiente_id = fila['siguiente_id'] if fila else 1
+
+                        try:
+                            cursor.execute(
+                                """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
+                                   gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
+                                   justificacion_cambio, estado, semaforo_id)
+                                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                                (siguiente_id, rango, resultado_ia.get('tipo_obra'),
+                                 resultado_ia.get('gravedad_sugerida'),
+                                 resultado_ia.get('origen', 'ia'),
+                                 datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
+                            id_prioridad = siguiente_id
+
+                            cursor.execute(
+                                "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
+                                (id_prioridad, solicitud['id']))
+                            conexion.commit()
+                            break
+                        except Exception as e:
+                            error_code = getattr(e, 'errno', None)
+                            if error_code is None and e.args:
+                                error_code = e.args[0]
+                            if error_code != 1062:
+                                raise
+                            conexion.rollback()
+                    else:
+                        raise ValueError("No se pudo reservar un ID único para prioridad tras 3 intentos")
+=======
                     cursor.execute(
-                        "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+                        "SELECT prioridad_id_gestion_prioridad AS pid FROM solicitudes WHERE id_solicitudes=%s",
+                        (solicitud['id'],))
                     fila = cursor.fetchone()
-                    siguiente_id = fila['siguiente_id'] if fila else 1
+                    id_prioridad = fila['pid'] if fila else None
 
-                    cursor.execute(
-                        """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
-                           gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
-                           justificacion_cambio, estado, semaforo_id)
-                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                        (siguiente_id, rango, resultado_ia.get('tipo_obra'),
-                         resultado_ia.get('gravedad_sugerida'),
-                         resultado_ia.get('origen', 'ia'),
-                         datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
-                    id_prioridad = siguiente_id
+                    if id_prioridad and id_prioridad != 0:
+                        cursor.execute(
+                            """UPDATE prioridad
+                               SET rango_prioridad=%s, justificacion_cambio=%s,
+                                   tipo_obra=%s, gravedad_sugerida=%s, origen=%s,
+                                   responsable_ajuste=%s, estado=1, semaforo_id=%s
+                               WHERE id_gestion_prioridad=%s""",
+                            (rango, justificacion, resultado_ia.get('tipo_obra'),
+                             resultado_ia.get('gravedad_sugerida'), resultado_ia.get('origen', 'ia'),
+                             responsable, id_semaforo_defecto, id_prioridad))
+                    else:
+                        cursor.execute(
+                            "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+                        fila = cursor.fetchone()
+                        id_prioridad = fila['siguiente_id'] if fila else 1
 
-                    cursor.execute(
-                        "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
-                        (id_prioridad, solicitud['id']))
+                        cursor.execute(
+                            """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
+                               gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
+                               justificacion_cambio, estado, semaforo_id)
+                               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                            (id_prioridad, rango, resultado_ia.get('tipo_obra'),
+                             resultado_ia.get('gravedad_sugerida'), resultado_ia.get('origen', 'ia'),
+                             datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
+
+                        cursor.execute(
+                            "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
+                            (id_prioridad, solicitud['id']))
                     conexion.commit()
+>>>>>>> 55c146ab013976e3685e8d83e23a3a99c5a4b943
 
                     resultados.append({
                         "solicitud_id": solicitud['id'],

@@ -372,6 +372,9 @@ CREATE TABLE `persona` (
 CREATE TABLE `prioridad` (
   `id_gestion_prioridad` int NOT NULL,
   `rango_prioridad` float NOT NULL,
+  `tipo_obra` varchar(20) DEFAULT NULL,
+  `gravedad_sugerida` varchar(20) DEFAULT NULL,
+  `origen` varchar(20) NOT NULL DEFAULT 'manual',
   `fecha_asignacion` datetime NOT NULL,
   `responsable_ajuste` varchar(30) NOT NULL,
   `justificacion_cambio` varchar(150) NOT NULL,

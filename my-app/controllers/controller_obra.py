@@ -3,6 +3,7 @@ from models.model_obra import ObraModel
 from models.model_bitacora import BitacoraModel
 from models.model_notificacion import notificar_a_roles
 from models.model_proyecto import ProyectoModel
+from controllers.UserController import verificar_permiso_accion
 
 obra_bp = Blueprint('obra_bp', __name__)
 
@@ -36,13 +37,21 @@ def vista_gestionar_obras():
     modelo = ObraModel()
     obras = modelo.obtener_todas()
 
-    return render_template('obras/form_gestionar_obras.html', obras=obras)
+    return render_template(
+        'obras/form_gestionar_obras.html',
+        obras=obras,
+        puede_crear=verificar_permiso_accion('obras', 'crear'),
+        puede_editar=verificar_permiso_accion('obras', 'editar'),
+        puede_eliminar=verificar_permiso_accion('obras', 'eliminar')
+    )
 
 
 @obra_bp.route('/editar-obra/<int:id_obra>', methods=['GET'])
 def vista_editar_obra(id_obra):
     if 'conectado' not in session:
         return redirect(url_for('login_bp.inicio'))
+    if not verificar_permiso_accion('obras', 'editar'):
+        return redirect(url_for('obra_bp.vista_gestionar_obras'))
 
     modelo = ObraModel()
     obra = modelo.obtener_obra_por_id(id_obra)
@@ -56,6 +65,8 @@ def vista_editar_obra(id_obra):
 def registrar_obra():
     if 'conectado' not in session:
         return jsonify({'status': 'error', 'message': 'Sesión caducada.'}), 401
+    if not verificar_permiso_accion('obras', 'crear'):
+        return jsonify({'status': 'error', 'message': 'No tienes permiso para registrar obras.'}), 403
 
     try:
         data = request.form
@@ -221,6 +232,8 @@ def detalle_obra(id_obra):
 def editar_obra(id_obra):
     if 'conectado' not in session:
         return jsonify({'status': 'error', 'message': 'Sesión caducada.'}), 401
+    if not verificar_permiso_accion('obras', 'editar'):
+        return jsonify({'status': 'error', 'message': 'No tienes permiso para editar obras.'}), 403
 
     modelo = ObraModel()
     obra = modelo.obtener_obra_por_id(id_obra)
@@ -247,6 +260,8 @@ def actualizar_obra_form():
 def actualizar_obra(id_obra):
     if 'conectado' not in session:
         return jsonify({'status': 'error', 'message': 'Sesión caducada.'}), 401
+    if not verificar_permiso_accion('obras', 'editar'):
+        return jsonify({'status': 'error', 'message': 'No tienes permiso para editar obras.'}), 403
 
     try:
         data = request.form
@@ -361,6 +376,8 @@ def actualizar_obra(id_obra):
 def eliminar_obra(id_obra):
     if 'conectado' not in session:
         return jsonify({'status': 'error', 'message': 'Sesión caducada.'}), 401
+    if not verificar_permiso_accion('obras', 'eliminar'):
+        return jsonify({'status': 'error', 'message': 'No tienes permiso para eliminar obras.'}), 403
 
     try:
         modelo = ObraModel()

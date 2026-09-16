@@ -49,11 +49,14 @@ def obtener_modulo_controller(id_modulo):
 
 def actualizar_modulo_controller(id_modulo, datos):
     try:
+        modulo_actual = ModuloModel(id_modulo=id_modulo).obtener_por_id(id_modulo)
+        if not modulo_actual:
+            return {"success": False, "message": "Módulo no encontrado."}
         modelo = ModuloModel(
             id_modulo=id_modulo,
             nombre=datos.get('nombre'),
             descripcion=datos.get('descripcion'),
-            url=datos.get('url'),
+            url=modulo_actual['url'],
             tipo=datos.get('tipo', 'CRUD'),
             icono=datos.get('icono'),
             orden=int(datos.get('orden') or 0),
@@ -194,3 +197,26 @@ def obtener_usuarios_por_rol_controller(id_rol):
     except Exception as e:
         print(f"Error en obtener_usuarios_por_rol_controller: {e}")
         return {"success": False, "message": "Error interno del servidor.", "usuarios": []}
+
+
+def obtener_permisos_usuario_controller(id_usuario):
+    return RolPermisoModel().obtener_permisos_usuario(id_usuario)
+
+
+def guardar_permisos_usuario_controller(id_usuario, permisos):
+    try:
+        id_usuario = int(id_usuario)
+        if not isinstance(permisos, list):
+            return {"success": False, "message": "Formato de permisos inválido."}
+        resultado = RolPermisoModel().guardar_permisos_usuario(id_usuario, permisos)
+        if resultado:
+            BitacoraService.registrar_accion(
+                session, MODULO_BITACORA, 'EDITAR',
+                f'Actualizó permisos del usuario ID: {id_usuario}')
+            return {"success": True, "message": "Permisos del usuario guardados correctamente."}
+        return {"success": False, "message": "Error al guardar los permisos del usuario."}
+    except (TypeError, ValueError):
+        return {"success": False, "message": "Usuario inválido."}
+    except Exception as e:
+        print(f"Error en guardar_permisos_usuario_controller: {e}")
+        return {"success": False, "message": "Error interno del servidor."}

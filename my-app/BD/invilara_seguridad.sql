@@ -98,6 +98,9 @@ INSERT INTO `modulos` (`id_modulo`, `nombre`, `descripcion`, `url`, `tipo`, `ico
 (17, 'respaldos', 'Administración de respaldos de la base de datos.', '/administrar-respaldos', 'CRUD', 'bi-download', 17, 1),
 (18, 'manual', 'Manual del sistema (documentación de usuario).', '/manual', 'Enlace', 'bi-journal-bookmark-fill', 18, 1);
 
+INSERT IGNORE INTO `modulos` (`id_modulo`, `nombre`, `descripcion`, `url`, `tipo`, `icono`, `orden`, `estado`)
+VALUES (19, 'roles_permisos', 'Administración de roles, módulos y permisos.', '/gestionar-permisos', 'CRUD', 'bi-shield-lock-fill', 19, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -163,6 +166,22 @@ CREATE TABLE `roles_permisos` (
   `puede_eliminar` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Puede borrar (ELIMINAR)',
   `estado` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1 activo, 0 inactivo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Permisos específicos por rol y módulo';
+
+-- Excepciones opcionales que sobrescriben los permisos heredados del rol.
+CREATE TABLE `usuarios_permisos` (
+  `id_usuario_permiso` int NOT NULL AUTO_INCREMENT,
+  `id_usuario` int NOT NULL,
+  `id_modulo` int NOT NULL,
+  `puede_ver` tinyint(1) NOT NULL DEFAULT '0',
+  `puede_crear` tinyint(1) NOT NULL DEFAULT '0',
+  `puede_editar` tinyint(1) NOT NULL DEFAULT '0',
+  `puede_eliminar` tinyint(1) NOT NULL DEFAULT '0',
+  `estado` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id_usuario_permiso`),
+  UNIQUE KEY `uk_usuario_modulo` (`id_usuario`,`id_modulo`),
+  KEY `idx_usuario_permisos_usuario` (`id_usuario`),
+  CONSTRAINT `fk_usuarios_permisos_modulo` FOREIGN KEY (`id_modulo`) REFERENCES `modulos` (`id_modulo`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Excepciones de permisos por usuario';
 
 --
 -- Volcado de datos para la tabla `roles_permisos`
@@ -237,6 +256,9 @@ INSERT INTO `roles_permisos` (`id_rol_permiso`, `id_rol`, `id_modulo`, `puede_ve
 (66, 9, 12, 1, 1, 1, 1, 1),
 (67, 9, 9, 1, 1, 1, 1, 1),
 (68, 9, 18, 1, 0, 0, 0, 1);
+
+INSERT IGNORE INTO `roles_permisos` (`id_rol`, `id_modulo`, `puede_ver`, `puede_crear`, `puede_editar`, `puede_eliminar`, `estado`)
+VALUES (1, 19, 1, 1, 1, 1, 1), (2, 19, 1, 1, 1, 1, 1);
 
 -- --------------------------------------------------------
 

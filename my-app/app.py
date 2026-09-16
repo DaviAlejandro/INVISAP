@@ -14,7 +14,7 @@ def _get_loader(name):
 
 pkgutil.get_loader = _get_loader
 
-from flask import Flask, session
+from flask import Flask, session, request, redirect, url_for
 from flask_mail import Mail
 import os
 
@@ -23,6 +23,147 @@ import claveApi
 
 app = Flask(__name__, template_folder='vista', instance_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance'))
 application = app
+
+# Rutas protegidas incluso cuando el catálogo de módulos todavía no está
+# disponible. Los prefijos cubren las vistas y sus endpoints del mismo módulo.
+_RUTAS_POR_MODULO = {
+    'solicitudes': ('/registrar-solicitud', '/lista-de-solicitudes', '/eliminar-solicitud', '/editar-solicitud', '/detalles-solicitud', '/update-solicitud', '/form-registrar-solicitud', '/api/solicitudes'),
+    'gravedad': ('/gestionar-gravedad', '/api/gravedad'),
+    'prioridad': ('/gestionar-prioridad', '/prioridad', '/api/prioridad'),
+    'proyectos': ('/gestionar-proyectos', '/form-registrar-proyecto', '/editar-proyecto', '/actualizar-proyecto', '/eliminar-proyecto', '/api/proyecto', '/api/obtener-solicitudes'),
+    'obras': ('/gestionar-obras', '/form-registrar-obra', '/editar-obra', '/form-editar-obra', '/obra', '/eliminar-obra', '/api/obra'),
+    'maquinaria': ('/registrar-maquinaria', '/maquinaria', '/form-registrar-maquinaria', '/editar-maquinaria', '/actualizar-maquinaria', '/eliminar-maquinaria', '/api/maquinaria'),
+    'contrataciones': ('/contratacion', '/contrataciones', '/form-contratacion', '/registrar-contratacion', '/procesar-actualizacion', '/eliminar-contratacion', '/api/obtener-empresas-json'),
+    'empresas': ('/registrar-empresas', '/lista-empresas', '/edi-empresas', '/form-registrar-empresas', '/update-empresa', '/eliminar-empresa', '/marcar-cumple-requisitos'),
+    'empleados': ('/registrar-empleado', '/empleados', '/buscando-empleado', '/editar-empleado'),
+    'inspecciones': ('/inspectores', '/inspecciones'),
+    'evidencias': ('/evidencias',),
+    'informes': ('/inf_avance_obra',),
+    'publicaciones': ('/registrar-publicaciones', '/lista-publicaciones', '/editar-publicacion', '/eliminar-publicacion', '/form-registrar-publicacion', '/actualizar-publicacion', '/detalles-publicacion', '/api/publicaciones'),
+    'reportes': ('/reportes', '/api/dashboard'),
+    'usuarios': ('/users', '/api/users'),
+    'roles_permisos': ('/gestionar-permisos', '/api/seguridad'),
+    'respaldos': ('/administrar-respaldos', '/respaldos'),
+    'bitacora': ('/bitacora',),
+    'manual': ('/manual-sistema', '/api/manual-sistema/pdf'),
+}
+
+
+def _modulo_de_ruta(path):
+    """Obtiene el módulo por prefijo, priorizando el prefijo más específico."""
+    coincidencias = [
+        (modulo, prefijo)
+        for modulo, prefijos in _RUTAS_POR_MODULO.items()
+        for prefijo in prefijos
+        if path == prefijo or path.startswith(prefijo.rstrip('/') + '/')
+    ]
+    return max(coincidencias, key=lambda item: len(item[1]))[0] if coincidencias else None
+
+
+_MODULO_POR_BLUEPRINT = {
+    'user_bp': 'usuarios',
+    'empleado_bp': 'empleados',
+    'empresa_bp': 'empresas',
+    'obra_bp': 'obras',
+    'inspeccion_bp': 'inspecciones',
+    'evidencia_bp': 'evidencias',
+    'informe_avance_bp': 'informes',
+    'reporte_excel_bp': 'reportes',
+    'reporte_pdf_bp': 'reportes',
+    'reporte_estadistico_bp': 'reportes',
+    'contrataciones_bp': 'contrataciones',
+    'respaldo_bp': 'respaldos',
+}
+
+
+def _modulo_de_peticion(path, endpoint):
+    return _modulo_de_ruta(path) or next(
+        (modulo for blueprint, modulo in _MODULO_POR_BLUEPRINT.items()
+         if endpoint and endpoint.startswith(f'{blueprint}.')),
+        None
+    )
+
+
+_ACCIONES_POR_RUTA = {
+    'crear': (
+        '/form-registrar-', '/registrar-', '/api/solicitudes/crear',
+        '/api/gravedad/registrar', '/api/publicaciones/crear', '/api/informes/crear',
+        '/api/obra/crear', '/api/maquinaria/crear', '/api/evidencias/crear',
+        '/api/crear', '/form-registrar', '/crear'
+    ),
+    'editar': (
+        '/editar-', '/editar', '/editar/', '/edit/', '/actualizar-', '/actualizar/',
+        '/update-', '/update/', '/procesar-actualizacion', '/form-editar-',
+        '/api/solicitudes/actualizar', '/api/gravedad/actualizar',
+        '/api/prioridad/actualizar', '/api/publicaciones/actualizar',
+        '/api/informes/actualizar', '/api/evidencias/actualizar',
+        '/api/actualizar', '/api/obra/editar', '/api/obra/actualizar'
+    ),
+    'eliminar': (
+        '/eliminar-', '/eliminar', '/eliminar/', '/delete/', '/api/solicitudes/eliminar',
+        '/api/gravedad/eliminar', '/api/prioridad/eliminar',
+        '/api/publicaciones/eliminar', '/api/informes/eliminar',
+        '/api/evidencias/eliminar', '/api/obra/eliminar',
+        '/api/eliminar'
+    )
+}
+
+
+def _accion_de_ruta(path, method):
+    """Determina la acción CRUD de una ruta para reforzar el backend."""
+    if path.startswith('/api/maquinaria/') and path.endswith('/eliminar'):
+        return 'eliminar'
+    if path.startswith('/api/maquinaria/') and path.endswith('/restaurar'):
+        return 'editar'
+    for accion, prefijos in _ACCIONES_POR_RUTA.items():
+        if any(path == prefijo or path.startswith(prefijo) for prefijo in prefijos):
+            return accion
+    if method in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+        return {'POST': 'crear', 'PUT': 'editar', 'PATCH': 'editar', 'DELETE': 'eliminar'}[method]
+    return None
+
+
+@app.before_request
+def proteger_modulos_por_url():
+    """Impide abrir por URL módulos visibles solo para otros roles."""
+    if 'conectado' not in session or request.endpoint == 'static':
+        return None
+    if request.path.startswith(('/login', '/logout', '/api/login')):
+        return None
+
+    modulo_por_ruta = _modulo_de_peticion(request.path, request.endpoint)
+    try:
+        from models.model_seguridad import ModuloModel
+        from controllers.UserController import verificar_permiso, verificar_permiso_accion
+        modulos = ModuloModel().consultar_activos()
+        if request.path == '/gestionar-permisos' or request.path.startswith('/api/seguridad/'):
+            clave = 'roles_permisos'
+        else:
+            modulo = next((m for m in sorted(modulos, key=lambda item: len(item['url']), reverse=True)
+                           if request.path == m['url'] or request.path.startswith(m['url'].rstrip('/') + '/')), None)
+            clave = modulo.get('nombre') if modulo else modulo_por_ruta
+        if clave and not verificar_permiso(clave):
+            if request.path.startswith('/api/'):
+                return {'success': False, 'message': 'No tienes permiso para acceder a este módulo.'}, 403
+            from flask import flash
+            flash('No tienes permiso para acceder a este módulo.', 'error')
+            return redirect(url_for('login_bp.inicio'))
+        accion = _accion_de_ruta(request.path, request.method)
+        if clave and accion and not verificar_permiso_accion(clave, accion):
+            if request.path.startswith('/api/') or request.is_json:
+                return {'success': False, 'message': f'No tienes permiso para {accion} en este módulo.'}, 403
+            from flask import flash
+            flash(f'No tienes permiso para {accion} en este módulo.', 'error')
+            return redirect(url_for('login_bp.inicio'))
+    except Exception:
+        # Una ruta conocida no debe quedar abierta si falla la consulta de permisos.
+        if modulo_por_ruta:
+            if request.path.startswith('/api/'):
+                return {'success': False, 'message': 'No se pudo validar el permiso.'}, 503
+            from flask import flash
+            flash('No se pudo validar el permiso de acceso.', 'error')
+            return redirect(url_for('login_bp.inicio'))
+    return None
 
 # Clave secreta de la aplicación (protección de sesiones / CSRF).
 # Generada y almacenada localmente en claveApi.py (práctica de producción).
@@ -55,6 +196,12 @@ from routers.router_page_not_found import *
 # Registrar blueprints
 app.register_blueprint(login_bp)
 app.register_blueprint(respaldo_bp)
+
+try:
+    from models.model_seguridad import asegurar_tabla_permisos_usuario
+    asegurar_tabla_permisos_usuario()
+except Exception as e:
+    print(f"[app] No se pudo actualizar el esquema de permisos: {e}")
 
 # ============================================
 # Notificaciones de cercanía de fecha de culminación (al iniciar la app)
@@ -98,16 +245,16 @@ def inject_perfil_usuario():
 # ============================================
 @app.context_processor
 def inject_permisos_usuario():
-    from controllers.UserController import verificar_permiso, PERMISOS
+    from controllers.UserController import verificar_permiso
     from flask import g
     rol = session.get('rol', 'Usuario')
     if not hasattr(g, '_permisos_cache'):
         try:
             from models.model_seguridad import RolPermisoModel
             permisos_db = RolPermisoModel().obtener_nombres_modulos_por_rol(rol)
-            g._permisos_cache = set(permisos_db) if permisos_db else set(PERMISOS.get(rol, []))
+            g._permisos_cache = set(permisos_db)
         except Exception:
-            g._permisos_cache = set(PERMISOS.get(rol, []))
+            g._permisos_cache = set()
     return {
         'tiene_permiso': verificar_permiso,
         'rol_usuario': rol,

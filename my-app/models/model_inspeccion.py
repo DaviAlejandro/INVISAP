@@ -24,6 +24,7 @@ class InspeccionModel(BaseModel):
         self.__observaciones = None
         self.__obra_id_obra = None
         self.__evidencia_id_evidencia = None
+        self.__evidencias_adicionales = None
         self.__estado = 1
         self.__asegurar_tabla_inspeccion()
 
@@ -58,6 +59,9 @@ class InspeccionModel(BaseModel):
                     if cur.fetchone():
                         self.__limpiar_cedula_inspeccion(cur, conn)
                         print("[DB] Columna 'cedula' y su indice eliminados de tabla inspeccion")
+
+                    self.__asegurar_columnas_obra_inspeccion(cur)
+                    conn.commit()
                 except Exception as e:
                     print(f"[DB] Error al verificar tabla: {e}")
                 finally:
@@ -65,6 +69,62 @@ class InspeccionModel(BaseModel):
                     conn.close()
         except Exception as e:
             print(f"[DB] No se pudo asegurar tabla: {e}")
+
+    def __asegurar_columnas_obra_inspeccion(self, cur):
+        """Asegura que las columnas de clave foranea de obra existan en la tabla inspeccion.
+        Detecta y respeta el esquema de nombres usado por la base de datos: si la tabla
+        usa 'obra_semaforo_id_semaforo' (esquema antiguo) no se agrega 'obra_estado'."""
+        usa_semaforo = False
+        try:
+            cur.execute("SHOW COLUMNS FROM inspeccion LIKE 'obra_semaforo_id_semaforo'")
+            usa_semaforo = cur.fetchone() is not None
+        except Exception:
+            pass
+
+        columnas = [
+            ("obra_semaforo_id_semaforo", "INT NOT NULL DEFAULT 1") if usa_semaforo else
+            ("obra_estado", "INT NOT NULL DEFAULT 1"),
+            ("obra_contratacion_id_contratacion", "INT NOT NULL DEFAULT 1"),
+            ("obra_gestionar_proyectos_codigo_proyecto", "VARCHAR(15) NOT NULL DEFAULT 'FRE-001'"),
+        ]
+        if usa_semaforo:
+            columnas.append(("obra_semaforo_id_semaforo1", "INT NOT NULL DEFAULT 1"))
+        else:
+            columnas.append(("obra_estado1", "INT NOT NULL DEFAULT 1"))
+        columnas.extend([
+            ("obra_contratacion_id_contratacion1", "INT NOT NULL DEFAULT 1"),
+            ("obra_gestionar_proyectos_codigo_proyecto1", "VARCHAR(15) NOT NULL DEFAULT 'FRE-001'"),
+        ])
+        for col_name, col_def in columnas:
+            try:
+                cur.execute(f"SHOW COLUMNS FROM inspeccion LIKE '{col_name}'")
+                if not cur.fetchone():
+                    cur.execute(f"ALTER TABLE inspeccion ADD COLUMN {col_name} {col_def}")
+                    print(f"[DB] Columna '{col_name}' agregada a tabla inspeccion")
+            except Exception as e:
+                print(f"[DB] Error al asegurar columna '{col_name}': {e}")
+
+        try:
+            cur.execute("SHOW COLUMNS FROM inspeccion LIKE 'evidencias_adicionales'")
+            if not cur.fetchone():
+                cur.execute("ALTER TABLE inspeccion ADD COLUMN evidencias_adicionales VARCHAR(255) NOT NULL DEFAULT ''")
+                print("[DB] Columna 'evidencias_adicionales' agregada a tabla inspeccion")
+        except Exception as e:
+            print(f"[DB] Error al asegurar columna 'evidencias_adicionales': {e}")
+
+    @staticmethod
+    def __get_obra_fk_config(cur):
+        """Devuelve un dict con los nombres correctos de columnas segun el esquema de la BD.
+        - 'semaforo_col': columna de semaforo en la tabla inspeccion (obra_estado u obra_semaforo_id_semaforo)
+        - 'semaforo1_col': columna de semaforo con sufijo 1
+        - 'obra_select': columna de semaforo en la tabla obra (estado o semaforo_id_semaforo)"""
+        try:
+            cur.execute("SHOW COLUMNS FROM inspeccion LIKE 'obra_semaforo_id_semaforo'")
+            if cur.fetchone():
+                return {'semaforo_col': 'obra_semaforo_id_semaforo', 'semaforo1_col': 'obra_semaforo_id_semaforo1', 'obra_select': 'semaforo_id_semaforo'}
+        except Exception:
+            pass
+        return {'semaforo_col': 'obra_estado', 'semaforo1_col': 'obra_estado1', 'obra_select': 'estado'}
 
     def __limpiar_cedula_inspeccion(self, cur, conn=None):
         try:
@@ -167,6 +227,12 @@ class InspeccionModel(BaseModel):
             raise ValueError("ID de evidencia debe ser un entero positivo.")
         self.__evidencia_id_evidencia = valor
 
+    def get_evidencias_adicionales(self):
+        return self.__evidencias_adicionales
+
+    def set_evidencias_adicionales(self, valor):
+        self.__evidencias_adicionales = str(valor) if valor else ''
+
     def get_estado(self):
         return self.__estado
 
@@ -231,6 +297,10 @@ class InspeccionModel(BaseModel):
             if not evidencia:
                 raise ValueError("La evidencia seleccionada no existe en la base de datos.")
 
+            fk_config = self.__get_obra_fk_config(cur)
+            semaforo_col = fk_config['semaforo_col']
+            semaforo1_col = fk_config['semaforo1_col']
+
             estado_id = obra.get('estado') or 1
             contratacion_id = obra.get('contratacion_id_contratacion') or 1
             codigo_proyecto = obra.get('gestionar_proyectos_codigo_proyecto') or 'FRE-001'
@@ -238,22 +308,22 @@ class InspeccionModel(BaseModel):
 
             tiene_estado = self.__columna_existe('inspeccion', 'estado')
             if tiene_estado:
-                columnas = "(id_inspeccion, inspector, fecha_inspeccion, tipo_inspeccion, observaciones, obra_id_obra, obra_estado, obra_contratacion_id_contratacion, obra_gestionar_proyectos_codigo_proyecto, obra_id_obra1, obra_estado1, obra_contratacion_id_contratacion1, obra_gestionar_proyectos_codigo_proyecto1, evidencia_id_evidencia, estado)"
+                columnas = f"(id_inspeccion, inspector, fecha_inspeccion, tipo_inspeccion, observaciones, obra_id_obra, {semaforo_col}, obra_contratacion_id_contratacion, obra_gestionar_proyectos_codigo_proyecto, obra_id_obra1, {semaforo1_col}, obra_contratacion_id_contratacion1, obra_gestionar_proyectos_codigo_proyecto1, evidencia_id_evidencia, evidencias_adicionales, estado)"
+                valores = "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
+                params = (
+                    self.__obtener_siguiente_id_inspeccion(conn), self.__inspector, self.__fecha_inspeccion, self.__tipo_inspeccion, self.__observaciones,
+                    self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
+                    self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
+                    self.__evidencia_id_evidencia, self.__evidencias_adicionales, 1
+                )
+            else:
+                columnas = f"(id_inspeccion, inspector, fecha_inspeccion, tipo_inspeccion, observaciones, obra_id_obra, {semaforo_col}, obra_contratacion_id_contratacion, obra_gestionar_proyectos_codigo_proyecto, obra_id_obra1, {semaforo1_col}, obra_contratacion_id_contratacion1, obra_gestionar_proyectos_codigo_proyecto1, evidencia_id_evidencia, evidencias_adicionales)"
                 valores = "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
                 params = (
                     self.__obtener_siguiente_id_inspeccion(conn), self.__inspector, self.__fecha_inspeccion, self.__tipo_inspeccion, self.__observaciones,
                     self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
                     self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
-                    self.__evidencia_id_evidencia, 1
-                )
-            else:
-                columnas = "(id_inspeccion, inspector, fecha_inspeccion, tipo_inspeccion, observaciones, obra_id_obra, obra_estado, obra_contratacion_id_contratacion, obra_gestionar_proyectos_codigo_proyecto, obra_id_obra1, obra_estado1, obra_contratacion_id_contratacion1, obra_gestionar_proyectos_codigo_proyecto1, evidencia_id_evidencia)"
-                valores = "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
-                params = (
-                    self.__obtener_siguiente_id_inspeccion(conn), self.__inspector, self.__fecha_inspeccion, self.__tipo_inspeccion, self.__observaciones,
-                    self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
-                    self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
-                    self.__evidencia_id_evidencia
+                    self.__evidencia_id_evidencia, self.__evidencias_adicionales
                 )
 
             sql = f"INSERT INTO inspeccion {columnas} VALUES ({valores})"
@@ -294,6 +364,10 @@ class InspeccionModel(BaseModel):
             if not evidencia:
                 raise ValueError("La evidencia seleccionada no existe en la base de datos.")
 
+            fk_config = self.__get_obra_fk_config(cur)
+            semaforo_col = fk_config['semaforo_col']
+            semaforo1_col = fk_config['semaforo1_col']
+
             estado_id = obra.get('estado') or 1
             contratacion_id = obra.get('contratacion_id_contratacion') or 1
             codigo_proyecto = obra.get('gestionar_proyectos_codigo_proyecto') or 'FRE-001'
@@ -301,25 +375,30 @@ class InspeccionModel(BaseModel):
 
             tiene_estado = self.__columna_existe('inspeccion', 'estado')
             set_estado = ", estado = 1" if tiene_estado else ""
+            tiene_evidencias_adicionales = self.__columna_existe('inspeccion', 'evidencias_adicionales')
+            set_evidencias = ", evidencias_adicionales = %s" if tiene_evidencias_adicionales else ""
 
             sql = f"""
                 UPDATE inspeccion
                 SET inspector = %s, fecha_inspeccion = %s, tipo_inspeccion = %s,
                     observaciones = %s, obra_id_obra = %s,
-                    obra_estado = %s, obra_contratacion_id_contratacion = %s,
+                    {semaforo_col} = %s, obra_contratacion_id_contratacion = %s,
                     obra_gestionar_proyectos_codigo_proyecto = %s,
-                    obra_id_obra1 = %s, obra_estado1 = %s,
+                    obra_id_obra1 = %s, {semaforo1_col} = %s,
                     obra_contratacion_id_contratacion1 = %s,
                     obra_gestionar_proyectos_codigo_proyecto1 = %s,
-                    evidencia_id_evidencia = %s{set_estado}
+                    evidencia_id_evidencia = %s{set_evidencias}{set_estado}
                 WHERE id_inspeccion = %s AND 1 = 1
             """
-            cur.execute(sql, (
+            params_base = (
                 self.__inspector, self.__fecha_inspeccion, self.__tipo_inspeccion, self.__observaciones,
                 self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
                 self.__obra_id_obra, estado_id, contratacion_id, codigo_proyecto,
-                self.__evidencia_id_evidencia, self.__id_inspeccion
-            ))
+            )
+            if tiene_evidencias_adicionales:
+                cur.execute(sql, (*params_base, self.__evidencia_id_evidencia, self.__evidencias_adicionales, self.__id_inspeccion))
+            else:
+                cur.execute(sql, (*params_base, self.__evidencia_id_evidencia, self.__id_inspeccion))
 
             cur.execute(
                 "UPDATE evidencia SET etapa = %s, fecha_registro = NOW() WHERE id_evidencia = %s AND estado = 1",
@@ -423,10 +502,30 @@ class InspeccionModel(BaseModel):
                 LEFT JOIN evidencia ev ON ev.id_evidencia = i.evidencia_id_evidencia AND ev.estado = 1
                 WHERE i.id_inspeccion = %s {where}
             """, (self.__id_inspeccion,))
-            return cur.fetchone()
+            row = cur.fetchone()
+            if row:
+                self.__cargar_evidencias_adicionales(row, cur)
+            return row
         finally:
             cur.close()
             conn.close()
+
+    @staticmethod
+    def __cargar_evidencias_adicionales(row, cur):
+        """Carga las evidencias adicionales seleccionadas y las agrega al resultado como una lista."""
+        ids_str = row.get('evidencias_adicionales') or ''
+        if not ids_str:
+            row['evidencias_adicionales_list'] = []
+            return
+        ids = [int(x.strip()) for x in ids_str.split(',') if x.strip().isdigit()]
+        if not ids:
+            row['evidencias_adicionales_list'] = []
+            return
+        placeholders = ','.join(['%s'] * len(ids))
+        cur.execute(
+            f"SELECT id_evidencia, fotos, url_archivos, etapa FROM evidencia WHERE id_evidencia IN ({placeholders}) AND estado = 1"
+        , ids)
+        row['evidencias_adicionales_list'] = cur.fetchall()
 
     def __validar_inspeccion_activa_db(self):
         conn = self._conectar()
@@ -493,9 +592,11 @@ class InspeccionModel(BaseModel):
             return []
         cur = conn.cursor(dictionary=True)
         try:
-            cur.execute("""
+            cur.execute("SHOW COLUMNS FROM obra LIKE 'semaforo_id_semaforo'")
+            col_semaforo = 'semaforo_id_semaforo' if cur.fetchone() else 'estado'
+            cur.execute(f"""
                 SELECT id_obra, titulo_obra, ubicacion_obra,
-                       estado, contratacion_id_contratacion,
+                       {col_semaforo} AS estado, contratacion_id_contratacion,
                        gestionar_proyectos_codigo_proyecto
                 FROM obra
                 ORDER BY id_obra DESC
@@ -511,9 +612,11 @@ class InspeccionModel(BaseModel):
             return None
         cur = conn.cursor(dictionary=True)
         try:
-            cur.execute("""
+            cur.execute("SHOW COLUMNS FROM obra LIKE 'semaforo_id_semaforo'")
+            col_semaforo = 'semaforo_id_semaforo' if cur.fetchone() else 'estado'
+            cur.execute(f"""
                 SELECT id_obra, titulo_obra, ubicacion_obra,
-                       estado, contratacion_id_contratacion,
+                       {col_semaforo} AS estado, contratacion_id_contratacion,
                        gestionar_proyectos_codigo_proyecto
                 FROM obra
                 WHERE id_obra = %s
@@ -594,7 +697,8 @@ class InspeccionModel(BaseModel):
             self.set_observaciones(data.get('observaciones'))
             self.set_obra_id_obra(int(data.get('obra_id_obra')))
             self.set_evidencia_id_evidencia(int(data.get('evidencia_id_evidencia')))
-            print(f"[DEBUG] Registrar inspeccion: obra={self.__obra_id_obra}, evidencia={self.__evidencia_id_evidencia}")
+            self.set_evidencias_adicionales(data.get('evidencias_adicionales'))
+            print(f"[DEBUG] Registrar inspeccion: obra={self.__obra_id_obra}, evidencia={self.__evidencia_id_evidencia}, adicionales={self.__evidencias_adicionales}")
             return self.__guardar_inspeccion_db()
         except ValueError as ve:
             print(f"[DEBUG] Error de validacion al registrar: {ve}")
@@ -617,6 +721,7 @@ class InspeccionModel(BaseModel):
             self.set_observaciones(data.get('observaciones'))
             self.set_obra_id_obra(int(data.get('obra_id_obra')))
             self.set_evidencia_id_evidencia(int(data.get('evidencia_id_evidencia')))
+            self.set_evidencias_adicionales(data.get('evidencias_adicionales'))
             return self.__actualizar_inspeccion_db()
         except ValueError as ve:
             raise ve

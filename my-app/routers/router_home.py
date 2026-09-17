@@ -1112,7 +1112,7 @@ def formRegistrarPublicacion():
         # Mostramos el error real en la pantalla para no tener que adivinar
         flash(f'Error del sistema: {str(e)}', 'error')
         
-    return redirect(url_for('home_bp.viewFormPublicaciones'))
+    return redirect(url_for('home_bp.lista_publicaciones'))
 
 @home_bp.route('/editar-publicacion/<int:id_publicacion>', methods=['GET'])
 def viewEditarPublicacion(id_publicacion):

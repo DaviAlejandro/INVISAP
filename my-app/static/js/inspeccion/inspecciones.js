@@ -9,12 +9,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const formInspeccionUpdate = document.getElementById('formInspeccionUpdate');
 
     cargarObras();
-    cargarEvidencias();
+    cargarEvidenciasModal();
     cargarInspectores();
 
     if (formInspeccion) {
         formInspeccion.addEventListener('submit', function (event) {
             console.log('[DEBUG] Submit del formulario de inspeccion detectado');
+            if (!validarEvidenciaSeleccionada()) {
+                event.preventDefault();
+                mostrarError('Seleccione una evidencia fotográfica.');
+                return;
+            }
             registrarInspeccionFetch(event).catch(err => {
                 console.error('[DEBUG] Error en submit inspeccion:', err);
             });
@@ -24,6 +29,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formInspeccionUpdate) {
         formInspeccionUpdate.addEventListener('submit', function (event) {
             console.log('[DEBUG] Submit del formulario de edicion detectado');
+            if (!validarEvidenciaSeleccionada()) {
+                event.preventDefault();
+                mostrarError('Seleccione una evidencia fotográfica.');
+                return;
+            }
             actualizarInspeccionFetch(event).catch(err => {
                 console.error('[DEBUG] Error en submit edicion:', err);
             });
@@ -40,16 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const inputEvidencia = document.querySelector('select[name="evidencia_id_evidencia"]');
-    if (inputEvidencia) {
-        inputEvidencia.addEventListener('change', function () {
-            if (this.value) {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            }
-        });
-    }
-
     const inputInspector = document.querySelector('select[name="inspector"]');
     if (inputInspector) {
         inputInspector.addEventListener('change', function () {
@@ -59,61 +59,298 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    var evidenciaInput = document.querySelector('input[name="evidencia_id_evidencia"]');
+    if (evidenciaInput) {
+        evidenciaInput.addEventListener('change', function () {
+            if (this.value) {
+                this.classList.remove('is-invalid');
+            } else {
+                this.classList.add('is-invalid');
+            }
+        });
+    }
 });
 
-async function cargarEvidencias() {
-    const selectEvidencia = document.querySelector('select[name="evidencia_id_evidencia"]');
-    if (!selectEvidencia) {
-        console.warn('[EVIDENCIAS] select evidencia no encontrado en el DOM');
-        return;
+window.EVIDENCIA_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2Y4ZjlmYSIvPjxudGV4dCB4PSI2MCIgeT0iNjUiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjN2M4NzhjIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TaW5fZXZpZGVuY2lhPC90ZXh0Pjwvc3ZnPg==';
+
+function getEvidenciaImageUrl(path) {
+    if (!path) return '';
+    const strPath = String(path).trim();
+    if (/^https?:\/\//i.test(strPath)) return strPath;
+    if (strPath.includes('..') || strPath.includes('\x00') || strPath.includes('%00')) {
+        console.warn('[SECURITY] Ruta de evidencia bloqueada:', strPath);
+        return '';
     }
+    let cleanPath = strPath.replace(/^\/+/, '').replace(/^static\//, '');
+    if (!/^[a-zA-Z0-9_\-./]+$/.test(cleanPath)) {
+        console.warn('[SECURITY] Ruta de evidencia con caracteres no permitidos:', strPath);
+        return '';
+    }
+    return `/static/${cleanPath}`;
+}
+
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function escapeJs(str) {
+    return String(str).replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
+}
+
+async function cargarEvidenciasModal() {
+    const evidenciaInput = document.getElementById('evidencia_id_evidencia');
+    if (!evidenciaInput) return;
+
+    window.__evidencias_inspeccion = [];
+    window.__evidencias_seleccionadas = [];
 
     try {
         const response = await fetch('/inspecciones/api/evidencias/listar');
-        console.log('[EVIDENCIAS] Response status:', response.status);
-
         if (!response.ok) {
-            const text = await response.text();
-            console.error('[EVIDENCIAS] Response error:', response.status, text);
-            selectEvidencia.innerHTML = '<option value="" disabled selected>Error de conexion</option>';
-            selectEvidencia.disabled = true;
+            console.error('[EVIDENCIAS] Response error:', response.status);
             return;
         }
-
         const evidencias = await response.json();
-        console.log('[EVIDENCIAS] Datos recibidos:', evidencias);
+        window.__evidencias_inspeccion = Array.isArray(evidencias) ? evidencias : [];
+        renderizarEvidenciasEnModal();
 
-        selectEvidencia.innerHTML = '<option value="" disabled selected>Seleccione evidencia...</option>';
+        const evidenciaActual = evidenciaInput.value;
+        const adicionalesInput = document.getElementById('evidencias_adicionales');
+        const adicionalesValue = adicionalesInput ? adicionalesInput.value : '';
 
-        if (!evidencias || evidencias.length === 0) {
-            const option = document.createElement('option');
-            option.value = "";
-            option.textContent = "No hay evidencias disponibles";
-            option.disabled = true;
-            selectEvidencia.appendChild(option);
-            selectEvidencia.disabled = true;
-            return;
-        }
-
-        evidencias.forEach(evidencia => {
-            const option = document.createElement('option');
-            option.value = evidencia.id_evidencia;
-            option.textContent = `#${evidencia.id_evidencia} - ${evidencia.etapa || 'Sin etapa'}`;
-            selectEvidencia.appendChild(option);
-        });
-
-        const evidenciaActual = selectEvidencia.getAttribute('data-value');
+        const allIds = [];
         if (evidenciaActual) {
-            selectEvidencia.value = evidenciaActual;
+            allIds.push(parseInt(evidenciaActual, 10));
         }
+        if (adicionalesValue) {
+            adicionalesValue.split(',').forEach(v => {
+                const n = parseInt(v, 10);
+                if (!isNaN(n)) allIds.push(n);
+            });
+        }
+        allIds.filter((v, i, a) => a.indexOf(v) === i);
 
-        selectEvidencia.disabled = false;
-        console.log('[EVIDENCIAS] Select poblado con', evidencias.length, 'evidencias');
+        if (allIds.length > 0) {
+            window.__evidencias_seleccionadas = allIds;
+            actualizarDisplayEvidencias();
+            actualizarPreviewEvidencia();
+        }
     } catch (error) {
         console.error('[EVIDENCIAS] Error al cargar evidencias:', error);
-        selectEvidencia.innerHTML = '<option value="" disabled selected>Error al cargar evidencias</option>';
-        selectEvidencia.disabled = true;
+        window.__evidencias_inspeccion = [];
     }
+}
+
+function renderizarEvidenciasEnModal() {
+    const container = document.getElementById('listaEvidenciasInspeccion');
+    if (!container) return;
+    const evidencias = window.__evidencias_inspeccion || [];
+    const seleccionadas = window.__evidencias_seleccionadas || [];
+
+    if (evidencias.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-image-alt" style="font-size: 3rem;" class="text-muted mb-3"></i>
+                <p class="text-muted">No hay evidencias registradas en el sistema.</p>
+                <small class="text-muted">Registre evidencias en el módulo de Evidencias.</small>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = evidencias.map(ev => {
+        const isSelected = seleccionadas.includes(ev.id_evidencia);
+        return `
+            <div class="col-md-3 mb-3">
+              <div class="card modal-evidencia-item h-100 ${isSelected ? 'selected' : ''}"
+                   data-id="${ev.id_evidencia}"
+                   onclick="seleccionarEvidenciaModal(${ev.id_evidencia})">
+                <div class="position-relative">
+                  <img src="${getEvidenciaImageUrl(ev.url_archivos)}"
+                       alt="${escapeHtml(ev.fotos)}" class="card-img-top"
+                       onerror="this.src=window.EVIDENCIA_PLACEHOLDER; this.onerror=null;" />
+                  <span class="badge bg-info text-dark position-absolute top-0 start-0 m-2"
+                        style="font-size:0.7rem;">
+                    <i class="bi bi-tag"></i> ${escapeHtml(ev.etapa || 'Sin etapa')}
+                  </span>
+                  <i class="bi bi-check-circle-fill text-success position-absolute top-0 end-0 m-2 ${isSelected ? '' : 'd-none'}"
+                     style="font-size:1.5rem;"></i>
+                </div>
+                <div class="card-body p-2">
+                  <p class="mb-1 small text-truncate" title="${escapeHtml(ev.fotos)}">
+                    <i class="bi bi-file-earmark me-1"></i>#${ev.id_evidencia} - ${escapeHtml(ev.fotos || 'Sin nombre')}
+                  </p>
+                  <small class="text-muted d-block">
+                    <i class="bi bi-calendar me-1"></i>${ev.fecha_registro ? new Date(ev.fecha_registro).toLocaleDateString('es-VE') : 'N/A'}
+                  </small>
+                </div>
+              </div>
+            </div>`;
+    }).join('');
+}
+
+window.__evidencias_seleccionadas = [];
+window.__evidencias_inspeccion = [];
+
+function seleccionarEvidenciaModal(id) {
+    const evidencias = window.__evidencias_inspeccion || [];
+    const evidencia = evidencias.find(e => e.id_evidencia === id);
+    if (!evidencia) return;
+
+    const MAX = 10;
+    const index = window.__evidencias_seleccionadas.indexOf(id);
+    if (index > -1) {
+        window.__evidencias_seleccionadas.splice(index, 1);
+    } else {
+        if (window.__evidencias_seleccionadas.length >= MAX) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Limite alcanzado',
+                text: `Solo puede seleccionar un maximo de ${MAX} evidencias.`,
+            });
+            return;
+        }
+        window.__evidencias_seleccionadas.push(id);
+    }
+
+    const input = document.getElementById('evidencia_id_evidencia');
+    const adicionalesInput = document.getElementById('evidencias_adicionales');
+    if (input) {
+        input.value = window.__evidencias_seleccionadas[0] || '';
+        input.classList.toggle('is-invalid', !input.value);
+    }
+    if (adicionalesInput) {
+        adicionalesInput.value = window.__evidencias_seleccionadas.slice(1).join(',');
+    }
+
+    const card = document.querySelector(`.modal-evidencia-item[data-id="${id}"]`);
+    if (card) {
+        card.classList.toggle('selected');
+        const icon = card.querySelector('.bi-check-circle-fill');
+        if (icon) {
+            if (window.__evidencias_seleccionadas.includes(id)) {
+                icon.classList.remove('d-none');
+            } else {
+                icon.classList.add('d-none');
+            }
+        }
+    }
+
+    actualizarDisplayEvidencias();
+    actualizarPreviewEvidencia();
+}
+
+function actualizarDisplayEvidencias() {
+    const display = document.getElementById('evidenciaDisplay');
+    const seleccionadas = window.__evidencias_seleccionadas || [];
+    if (!display) return;
+
+    if (seleccionadas.length === 0) {
+        display.value = '';
+        return;
+    }
+
+    const evidencias = window.__evidencias_inspeccion || [];
+    const labels = seleccionadas.map(id => {
+        const ev = evidencias.find(e => e.id_evidencia === id);
+        return ev ? `#${ev.id_evidencia}` : `#${id}`;
+    });
+    display.value = `${seleccionadas.length} evidencia(s) seleccionada(s): ${labels.join(', ')}`;
+}
+
+function actualizarPreviewEvidencia() {
+    const container = document.getElementById('previewEvidenciaInspeccion');
+    if (!container) return;
+    const evidencias = window.__evidencias_inspeccion || [];
+    const seleccionadas = window.__evidencias_seleccionadas || [];
+
+    if (seleccionadas.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = '';
+    seleccionadas.forEach(id => {
+        const evidencia = evidencias.find(e => e.id_evidencia === id);
+        if (!evidencia) return;
+        const item = document.createElement('div');
+        item.className = 'preview-evidencia-item';
+        item.innerHTML = `
+            <img src="${getEvidenciaImageUrl(evidencia.url_archivos)}"
+                 alt="${escapeHtml(evidencia.fotos)}"
+                 onerror="this.src=window.EVIDENCIA_PLACEHOLDER; this.onerror=null;" />
+            <div class="remove-btn" onclick="removerEvidenciaSeleccionada(${id})">
+                <i class="bi bi-x"></i>
+            </div>`;
+        container.appendChild(item);
+    });
+}
+
+function removerEvidenciaSeleccionada(id) {
+    const index = window.__evidencias_seleccionadas.indexOf(id);
+    if (index > -1) {
+        window.__evidencias_seleccionadas.splice(index, 1);
+
+        const input = document.getElementById('evidencia_id_evidencia');
+        const adicionalesInput = document.getElementById('evidencias_adicionales');
+        if (input) {
+            input.value = window.__evidencias_seleccionadas[0] || '';
+            input.classList.toggle('is-invalid', !input.value);
+        }
+        if (adicionalesInput) {
+            adicionalesInput.value = window.__evidencias_seleccionadas.slice(1).join(',');
+        }
+
+        document.querySelectorAll('.modal-evidencia-item').forEach(card => {
+            card.classList.remove('selected');
+            const icon = card.querySelector('.bi-check-circle-fill');
+            if (icon) icon.classList.add('d-none');
+        });
+        window.__evidencias_seleccionadas.forEach(selId => {
+            const card = document.querySelector(`.modal-evidencia-item[data-id="${selId}"]`);
+            if (card) {
+                card.classList.add('selected');
+                const icon = card.querySelector('.bi-check-circle-fill');
+                if (icon) icon.classList.remove('d-none');
+            }
+        });
+
+        actualizarDisplayEvidencias();
+        actualizarPreviewEvidencia();
+    }
+}
+
+function validarEvidenciaSeleccionada() {
+    const input = document.getElementById('evidencia_id_evidencia');
+    if (!input || !input.value) {
+        const feedback = document.getElementById('evidenciaFeedback');
+        if (feedback) feedback.style.display = 'block';
+        return false;
+    }
+    const feedback = document.getElementById('evidenciaFeedback');
+    if (feedback) feedback.style.display = 'none';
+    return true;
+}
+
+function cerrarModalEvidencia() {
+    const modalEl = document.getElementById('modalEvidenciasInspeccion');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+}
+
+function confirmarEvidenciaSeleccionada() {
+    if (!window.__evidencias_seleccionadas || window.__evidencias_seleccionadas.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Sin seleccion',
+            text: 'Debe seleccionar al menos una evidencia antes de confirmar.',
+        });
+        return;
+    }
+    cerrarModalEvidencia();
 }
 
 async function cargarObras() {
@@ -424,6 +661,9 @@ if (typeof module !== 'undefined' && module.exports) {
         actualizarInspeccionFetch,
         eliminarInspeccionJS,
         cargarObras,
-        cargarEvidencias
+        cargarEvidenciasModal,
+        getEvidenciaImageUrl,
+        escapeHtml,
+        escapeJs
     };
 }

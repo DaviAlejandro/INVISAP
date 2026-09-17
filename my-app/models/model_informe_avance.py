@@ -216,7 +216,7 @@ class InformeAvanceModel(BaseModel):
                 print(f"[DB] Error al asegurar columna {col}: {e}")
 
     def __asegurar_tabla_avance(self):
-        """Amplía la columna descripcion de avance para admitir observaciones largas."""
+        """Amplía la columna descripcion de avance y asegura columnas de obra."""
         try:
             conn = connectionBD_invilara()
             if conn:
@@ -230,6 +230,22 @@ class InformeAvanceModel(BaseModel):
                             cur.execute("ALTER TABLE avance MODIFY COLUMN descripcion TEXT NOT NULL")
                             conn.commit()
                             print("[DB] Columna 'avance.descripcion' ampliada a TEXT para observaciones largas")
+
+                    cur.execute("SHOW COLUMNS FROM avance LIKE 'obra_semaforo_id_semaforo'")
+                    usa_semaforo = cur.fetchone() is not None
+
+                    columnas_obra = [
+                        ("obra_semaforo_id_semaforo", "INT NOT NULL DEFAULT 1") if usa_semaforo else
+                        ("obra_estado", "INT NOT NULL DEFAULT 1"),
+                        ("obra_contratacion_id_contratacion", "INT NOT NULL DEFAULT 1"),
+                        ("obra_gestionar_proyectos_codigo_proyecto", "VARCHAR(15) NOT NULL DEFAULT 'FRE-001'"),
+                    ]
+                    for col_name, col_def in columnas_obra:
+                        cur.execute(f"SHOW COLUMNS FROM avance LIKE '{col_name}'")
+                        if not cur.fetchone():
+                            cur.execute(f"ALTER TABLE avance ADD COLUMN {col_name} {col_def}")
+                            print(f"[DB] Columna '{col_name}' agregada a tabla avance")
+                    conn.commit()
                 except Exception as e:
                     print(f"[DB] Error al asegurar columna avance.descripcion: {e}")
                 finally:
@@ -256,9 +272,11 @@ class InformeAvanceModel(BaseModel):
 
             # Usar SIEMPRE la clave compuesta real de una obra existente para
             # no violar la FK fk_avance_obra1 (avance -> obra). Seleccionamos
-            # las 4 columnas del PK directamente desde una fila real de 'obra'.
+            # las columnas del PK directamente desde una fila real de 'obra'.
+            cur.execute("SHOW COLUMNS FROM obra LIKE 'semaforo_id_semaforo'")
+            col_semaforo = 'semaforo_id_semaforo' if cur.fetchone() else 'estado'
             cur.execute(
-                "SELECT id_obra, estado, contratacion_id_contratacion, "
+                f"SELECT id_obra, {col_semaforo}, contratacion_id_contratacion, "
                 "gestionar_proyectos_codigo_proyecto FROM obra ORDER BY id_obra DESC LIMIT 1"
             )
             row_obra = cur.fetchone()
@@ -272,7 +290,9 @@ class InformeAvanceModel(BaseModel):
                 id_contratacion = 1
                 codigo_proyecto = 'FRE-001'
 
-            sql = """INSERT INTO avance (id_avance, descripcion, porcentaje_avance, gerente, fecha_avance, obra_id_obra, obra_estado, obra_contratacion_id_contratacion, obra_gestionar_proyectos_codigo_proyecto) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            cur.execute("SHOW COLUMNS FROM avance LIKE 'obra_semaforo_id_semaforo'")
+            col_obra_estado = 'obra_semaforo_id_semaforo' if cur.fetchone() else 'obra_estado'
+            sql = f"""INSERT INTO avance (id_avance, descripcion, porcentaje_avance, gerente, fecha_avance, obra_id_obra, {col_obra_estado}, obra_contratacion_id_contratacion, obra_gestionar_proyectos_codigo_proyecto) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
             params = (id_avance, descripcion, porcentaje, str(gerente_id) if gerente_id else '1', datetime.now().date(), id_obra, id_estado, id_contratacion, codigo_proyecto)
             cur.execute(sql, params)
             conn.commit()

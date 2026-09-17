@@ -85,12 +85,11 @@ class ContratacionModel(BaseModel):
                     conexion.commit()
                     return True, "Contratación registrada correctamente."
                 except Exception as e:
-                    error_code = getattr(e, 'errno', None)
-                    if error_code is None and e.args:
-                        error_code = e.args[0]
-                    if error_code != 1062:
-                        raise
-                    conexion.rollback()
+                    error_msg = str(e)
+                    print(f"--- [MODELO] ERROR SQL INSERT: {error_msg} ---") 
+                    if "1062" in error_msg or "Duplicate" in error_msg:
+                        return False, "El Número de Contrato ya se Encuentra Registrado."
+                    return False, f"Error SQL: {error_msg}"
 
             print("--- [MODELO] No se pudo reservar un ID único para contratación tras 3 intentos ---")
             return False, "No se pudo registrar la contratación por conflicto de ID."

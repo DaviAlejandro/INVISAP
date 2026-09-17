@@ -203,6 +203,12 @@ try:
 except Exception as e:
     print(f"[app] No se pudo actualizar el esquema de permisos: {e}")
 
+try:
+    from models.model_obra import asegurar_tabla_obra
+    asegurar_tabla_obra()
+except Exception as e:
+    print(f"[app] No se pudo asegurar tabla obra: {e}")
+
 # ============================================
 # Notificaciones de cercanía de fecha de culminación (al iniciar la app)
 # ============================================

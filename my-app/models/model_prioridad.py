@@ -692,40 +692,6 @@ class PrioridadModel(BaseModel):
                 conexion = connectionBD()
                 try:
                     cursor = conexion.cursor(dictionary=True, buffered=True)
-<<<<<<< HEAD
-                    for _ in range(3):
-                        cursor.execute(
-                            "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
-                        fila = cursor.fetchone()
-                        siguiente_id = fila['siguiente_id'] if fila else 1
-
-                        try:
-                            cursor.execute(
-                                """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
-                                   gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
-                                   justificacion_cambio, estado, semaforo_id)
-                                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                                (siguiente_id, rango, resultado_ia.get('tipo_obra'),
-                                 resultado_ia.get('gravedad_sugerida'),
-                                 resultado_ia.get('origen', 'ia'),
-                                 datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
-                            id_prioridad = siguiente_id
-
-                            cursor.execute(
-                                "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
-                                (id_prioridad, solicitud['id']))
-                            conexion.commit()
-                            break
-                        except Exception as e:
-                            error_code = getattr(e, 'errno', None)
-                            if error_code is None and e.args:
-                                error_code = e.args[0]
-                            if error_code != 1062:
-                                raise
-                            conexion.rollback()
-                    else:
-                        raise ValueError("No se pudo reservar un ID único para prioridad tras 3 intentos")
-=======
                     cursor.execute(
                         "SELECT prioridad_id_gestion_prioridad AS pid FROM solicitudes WHERE id_solicitudes=%s",
                         (solicitud['id'],))
@@ -742,26 +708,40 @@ class PrioridadModel(BaseModel):
                             (rango, justificacion, resultado_ia.get('tipo_obra'),
                              resultado_ia.get('gravedad_sugerida'), resultado_ia.get('origen', 'ia'),
                              responsable, id_semaforo_defecto, id_prioridad))
+                        conexion.commit()
                     else:
-                        cursor.execute(
-                            "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
-                        fila = cursor.fetchone()
-                        id_prioridad = fila['siguiente_id'] if fila else 1
+                        for _ in range(3):
+                            cursor.execute(
+                                "SELECT COALESCE(MAX(id_gestion_prioridad), 0) + 1 AS siguiente_id FROM prioridad")
+                            fila = cursor.fetchone()
+                            siguiente_id = fila['siguiente_id'] if fila else 1
 
-                        cursor.execute(
-                            """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
-                               gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
-                               justificacion_cambio, estado, semaforo_id)
-                               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                            (id_prioridad, rango, resultado_ia.get('tipo_obra'),
-                             resultado_ia.get('gravedad_sugerida'), resultado_ia.get('origen', 'ia'),
-                             datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
+                            try:
+                                cursor.execute(
+                                    """INSERT INTO prioridad (id_gestion_prioridad, rango_prioridad, tipo_obra,
+                                       gravedad_sugerida, origen, fecha_asignacion, responsable_ajuste,
+                                       justificacion_cambio, estado, semaforo_id)
+                                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                                    (siguiente_id, rango, resultado_ia.get('tipo_obra'),
+                                     resultado_ia.get('gravedad_sugerida'),
+                                     resultado_ia.get('origen', 'ia'),
+                                     datetime.now(), responsable, justificacion, 1, id_semaforo_defecto))
+                                id_prioridad = siguiente_id
 
-                        cursor.execute(
-                            "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
-                            (id_prioridad, solicitud['id']))
-                    conexion.commit()
->>>>>>> 55c146ab013976e3685e8d83e23a3a99c5a4b943
+                                cursor.execute(
+                                    "UPDATE solicitudes SET prioridad_id_gestion_prioridad=%s WHERE id_solicitudes=%s",
+                                    (id_prioridad, solicitud['id']))
+                                conexion.commit()
+                                break
+                            except Exception as e:
+                                error_code = getattr(e, 'errno', None)
+                                if error_code is None and e.args:
+                                    error_code = e.args[0]
+                                if error_code != 1062:
+                                    raise
+                                conexion.rollback()
+                        else:
+                            raise ValueError("No se pudo reservar un ID único para prioridad tras 3 intentos")
 
                     resultados.append({
                         "solicitud_id": solicitud['id'],

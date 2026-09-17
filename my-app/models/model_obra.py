@@ -1,4 +1,5 @@
 from conexion.conexionBD import connectionBD
+from conexion.conexionBD import connectionBD_invilara
 from models.base_model import BaseModel
 import re
 
@@ -547,3 +548,27 @@ class ObraModel(BaseModel):
 
     def listar_proyectos(self) -> list:
         return self._sql_listar_proyectos()
+
+
+def asegurar_tabla_obra():
+    """Asegura que la columna 'activo' exista en la tabla obra."""
+    con = cursor = None
+    try:
+        con = connectionBD_invilara()
+        if not con:
+            return
+        cursor = con.cursor()
+        cursor.execute("SHOW COLUMNS FROM obra LIKE 'activo'")
+        if not cursor.fetchone():
+            cursor.execute(
+                "ALTER TABLE obra ADD COLUMN activo TINYINT NOT NULL DEFAULT 1 "
+                "COMMENT '1=Activo, 0=Inactivo (borrado logico)'")
+            con.commit()
+            print("[DB] Columna 'activo' agregada a tabla obra")
+    except Exception as e:
+        print(f"[DB] No se pudo asegurar columna activo en obra: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+        if con:
+            con.close()

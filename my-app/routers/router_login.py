@@ -198,7 +198,7 @@ def enviarOTP():
             flash('El formato del correo electrónico no es válido.', 'error')
             return redirect(url_for('login_bp.cpanelRecoveryPassUser'))
         
-        # Verificar que el usuario existe y está activo (Borrado lógico - Prof. Escalona)
+        # Verificar que el usuario existe y está activo
         try:
             conexion = connectionBD_seguridad()
             cursor = conexion.cursor(dictionary=True)

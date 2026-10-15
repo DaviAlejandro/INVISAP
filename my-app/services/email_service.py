@@ -9,9 +9,9 @@ from flask import render_template_string
 import random
 import string
 from datetime import datetime, timedelta
-from conexion.base_conexion import BaseConexionBD
+from conexion.conexionBD import ConexionBD
 
-class EmailService(BaseConexionBD):
+class EmailService(ConexionBD):
     """
     Clase para gestionar el envío de correos electrónicos
     Implementa encapsulamiento y responsabilidad única (POO)

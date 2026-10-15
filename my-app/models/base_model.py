@@ -3,10 +3,10 @@ BaseModel — Funcionalidades comunes reutilizables para todos los modelos.
 Centraliza limpieza de texto y ejecución de SQL con manejo automático de conexiones.
 """
 import re
-from conexion.base_conexion import BaseConexionBD
+from conexion.conexionBD import ConexionBD
 
 
-class BaseModel(BaseConexionBD):
+class BaseModel(ConexionBD):
     """Clase base con utilidades compartidas para modelos del sistema."""
 
     @staticmethod

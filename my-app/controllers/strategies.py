@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from werkzeug.security import check_password_hash, generate_password_hash
-from conexion.conexionBD import connectionBD_seguridad
+from conexion.conexionBD import ConexionBD
 from models.model_usuarios import UsuarioModel
 import re
 
@@ -28,9 +28,9 @@ class UserPersistenceStrategy(ABC):
 
 # --- ESTRATEGIAS CONCRETAS PARA LOGIN ---
 
-class DatabaseLoginStrategy(LoginStrategy):
+class DatabaseLoginStrategy(LoginStrategy, ConexionBD):
     def autenticar(self, nombre_usuario, password):
-        conn = connectionBD_seguridad()
+        conn = self.obtener_conexion_seguridad()
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("SELECT * FROM usuarios WHERE nombre = %s", [nombre_usuario])
@@ -44,13 +44,13 @@ class DatabaseLoginStrategy(LoginStrategy):
 
 # --- ESTRATEGIAS CONCRETAS PARA USUARIOS (MySQL) ---
 
-class MySqlUserStrategy(UserPersistenceStrategy):
+class MySqlUserStrategy(UserPersistenceStrategy, ConexionBD):
     def registrar(self, usuario: UsuarioModel):
         # Invocamos el método público del modelo que protege el método privado de DB
         return usuario.guardar()
 
     def obtener_todos(self):
-        conn = connectionBD_seguridad()
+        conn = self.obtener_conexion_seguridad()
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("SELECT id_usuarios, cedula_usuario, nombre, correo, rol FROM usuarios")
@@ -60,7 +60,7 @@ class MySqlUserStrategy(UserPersistenceStrategy):
             conn.close()
 
     def buscar_por_id(self, user_id):
-        conn = connectionBD_seguridad()
+        conn = self.obtener_conexion_seguridad()
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("SELECT * FROM usuarios WHERE id_usuarios = %s", [user_id])
@@ -70,7 +70,7 @@ class MySqlUserStrategy(UserPersistenceStrategy):
             conn.close()
 
     def actualizar(self, usuario: UsuarioModel, nueva_pass=None):
-        conn = connectionBD_seguridad()
+        conn = self.obtener_conexion_seguridad()
         cursor = conn.cursor()
         try:
             if nueva_pass:

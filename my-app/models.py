@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-from conexion.conexionBD import connectionBD_invilara
 from models.base_model import BaseModel
 
 
@@ -19,7 +18,7 @@ class PublicacionModel(BaseModel):
 
     def __asegurar_tabla_publicacion(self):
         try:
-            conn = connectionBD_invilara()
+            conn = self.obtener_conexion()
             if conn:
                 cur = conn.cursor()
                 try:
@@ -125,7 +124,7 @@ class PublicacionModel(BaseModel):
         cursor = None
         conexión = None
         try:
-            conexion = connectionBD_invilara()
+            conexion = self.obtener_conexion()
             cursor = conexion.cursor(dictionary=True)
             sql = """SELECT id_publicacion, titulo_publicacion, 
                             nombre_responsable, tipo_publicacion, 
@@ -142,7 +141,7 @@ class PublicacionModel(BaseModel):
 
     def __obtener_informes_db(self):
         try:
-            conexion = connectionBD_invilara()
+            conexion = self.obtener_conexion()
             cursor = conexion.cursor(dictionary=True)
             sql = "SELECT id_informe, tipo_informe AS nombre_proyecto FROM informe_avance_obra"
             cursor.execute(sql)
@@ -158,7 +157,7 @@ class PublicacionModel(BaseModel):
         conexion = None
         cursor = None
         try:
-            conexion = connectionBD_invilara()
+            conexion = self.obtener_conexion()
             cursor = conexion.cursor(dictionary=True)
             sql = """SELECT id_publicacion, titulo_publicacion, 
                             nombre_responsable, tipo_publicacion, 
@@ -179,7 +178,7 @@ class PublicacionModel(BaseModel):
         cursor = None
         try:
             id_inf_val = int(self.__id_informe) if self.__id_informe and str(self.__id_informe).isdigit() else None
-            conexion = connectionBD_invilara()
+            conexion = self.obtener_conexion()
             cursor = conexion.cursor()
             sql = """UPDATE publicacion SET 
                      titulo_publicacion = %s, nombre_responsable = %s, 
@@ -202,7 +201,7 @@ class PublicacionModel(BaseModel):
         cursor = None
         try:
             id_inf_val = int(self.__id_informe) if self.__id_informe and str(self.__id_informe).isdigit() else None
-            conexion = connectionBD_invilara()
+            conexion = self.obtener_conexion()
             cursor = conexion.cursor()
             
             cursor.execute("SELECT COALESCE(MAX(id_publicacion), 0) + 1 AS siguiente_id FROM publicacion")
@@ -228,7 +227,7 @@ class PublicacionModel(BaseModel):
 
     def __borrado_logico_db(self):
         try:
-            conexion = connectionBD_invilara()
+            conexion = self.obtener_conexion()
             cursor = conexion.cursor()
             sql = "UPDATE publicacion SET estado = 0 WHERE id_publicacion = %s"
             cursor.execute(sql, (self.__id_publicacion,))
@@ -248,7 +247,7 @@ class PublicacionModel(BaseModel):
         conexion = None
         cursor = None
         try:
-            conexion = connectionBD_invilara()
+            conexion = self.obtener_conexion()
             if not conexion:
                 return False
             cursor = conexion.cursor()

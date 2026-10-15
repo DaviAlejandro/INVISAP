@@ -4,18 +4,21 @@ Roles y Permisos en la base de datos `invilara_seguridad`.
 
 Tablas: modulos, roles, roles_permisos.
 Patrón: igual que model_gravedad (encapsulamiento + conexión que se abre/cierra por consulta).
-Conexión: BaseConexionBD.obtener_conexion_seguridad() (BD de seguridad).
+Conexión: ConexionBD.obtener_conexion_seguridad() (BD de seguridad).
 """
 import re
-from conexion.base_conexion import BaseConexionBD
 from models.base_model import BaseModel
+
+
+class _SeguridadDatabase(BaseModel):
+    """Acceso heredado a la base de datos para operaciones del módulo."""
 
 
 def asegurar_tabla_permisos_usuario():
     """Crea la tabla de excepciones al actualizar una instalación existente."""
     con = cursor = None
     try:
-        con = BaseConexionBD.obtener_conexion_seguridad()
+        con = _SeguridadDatabase.obtener_conexion_seguridad()
         cursor = con.cursor()
         cursor.execute("""CREATE TABLE IF NOT EXISTS usuarios_permisos (
             id_usuario_permiso INT NOT NULL AUTO_INCREMENT,

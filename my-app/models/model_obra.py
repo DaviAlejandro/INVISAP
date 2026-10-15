@@ -1,4 +1,3 @@
-from conexion.base_conexion import BaseConexionBD
 from models.base_model import BaseModel
 import re
 
@@ -9,7 +8,7 @@ class ObraModel(BaseModel):
 
     @staticmethod
     def _con():
-        return BaseConexionBD.obtener_conexion_estricta()
+        return ObraModel.obtener_conexion_estricta()
 
     @staticmethod
     def _es_texto_valido(texto, max_len=100):
@@ -56,7 +55,7 @@ class ObraModel(BaseModel):
     def _eliminar_trigger_semaforo():
         conn = None
         try:
-            conn = BaseConexionBD.obtener_conexion_estricta()
+            conn = ObraModel.obtener_conexion_estricta()
             if conn:
                 cursor = conn.cursor()
                 cursor.execute("DROP TRIGGER IF EXISTS actualizar_semaforo_obra")
@@ -553,7 +552,7 @@ def asegurar_tabla_obra():
     """Asegura que la columna 'activo' exista en la tabla obra."""
     con = cursor = None
     try:
-        con = BaseConexionBD.obtener_conexion()
+        con = ObraModel.obtener_conexion()
         if not con:
             return
         cursor = con.cursor()

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify
-from conexion.conexionBD import connectionBD_seguridad
+from conexion.conexionBD import ConexionBD
 from werkzeug.security import check_password_hash, generate_password_hash
 from controllers.funciones_login import *
 from controllers.strategies import AuthContext, DatabaseLoginStrategy
@@ -14,6 +14,11 @@ from services.email_service import EmailService
 
 login_bp = Blueprint('login_bp', __name__)
 PATH_URL_LOGIN = "login"
+
+
+class _LoginRouterDatabase(ConexionBD):
+    """Acceso heredado a la base de datos para este módulo."""
+
 
 # Contexto de autenticación inyectado con la estrategia de base de datos
 auth_context = AuthContext(DatabaseLoginStrategy())
@@ -218,7 +223,7 @@ def enviarOTP():
         
         # Verificar que el usuario existe y está activo
         try:
-            conexion = connectionBD_seguridad()
+            conexion = _LoginRouterDatabase.obtener_conexion_seguridad()
             cursor = conexion.cursor(dictionary=True)
             cursor.execute(
                 "SELECT nombre, correo FROM usuarios WHERE correo = %s AND estado = 1", 
@@ -325,7 +330,7 @@ def restablecerClave():
         
         # Actualizar contraseña en la base de datos
         try:
-            conexion = connectionBD_seguridad()
+            conexion = _LoginRouterDatabase.obtener_conexion_seguridad()
             cursor = conexion.cursor()
             
             nueva_password_hash = generate_password_hash(nueva_clave)

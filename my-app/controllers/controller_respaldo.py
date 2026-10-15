@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, jsonify, send_file, flash
 import os
 from datetime import datetime
-from conexion.conexionBD import connectionBD_invilara
 from models.model_respaldo import RespaldoModel
 from services.bitacora_service import BitacoraService
 

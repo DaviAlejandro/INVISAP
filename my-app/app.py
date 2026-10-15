@@ -175,7 +175,7 @@ app.secret_key = claveApi.SECRET_KEY
 
 # ============================================
 # CONFIGURACIÓN DE FLASK-MAIL (Sin usar ninguna CDN como nos pidieron)
-# Según las indicaciones del Prof. Escalona
+# 
 # ============================================
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587

@@ -1,7 +1,7 @@
 from flask import Blueprint, session, request, flash, redirect, url_for
 from models.model_empresas import EmpresaModel
 from services.bitacora_service import BitacoraService
-from conexion.conexionBD import connectionBD_invilara
+from conexion.conexionBD import ConexionBD
 from flask import Blueprint, session, request, flash, redirect, url_for
 from flask import request, flash, redirect, url_for, session
 import re
@@ -9,13 +9,18 @@ import re
 # Definir blueprint
 empresa_bp = Blueprint('empresa_bp', __name__)
 
+
+class _EmpresaDatabase(ConexionBD):
+    """Acceso heredado a la base de datos para este módulo."""
+
+
 def obtener_todas_las_empresas():
     return EmpresaModel().obtener_todas_las_empresas()
 
 def obtener_empresa_por_rif(rif):
     conexion = None
     try:
-        conexion = connectionBD_invilara()
+        conexion = _EmpresaDatabase.obtener_conexion()
         cursor = conexion.cursor(dictionary=True)
         cursor.execute("SELECT * FROM empresa WHERE rif = %s", (rif,))
         return cursor.fetchone()

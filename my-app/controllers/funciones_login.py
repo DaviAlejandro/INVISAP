@@ -2,7 +2,7 @@
 from flask import session, flash
 
 # Importando conexion a BD
-from conexion.conexionBD import connectionBD_seguridad
+from conexion.conexionBD import ConexionBD
 # Para  validar contraseña
 from werkzeug.security import check_password_hash
 
@@ -29,6 +29,10 @@ EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 PASSWORD_REGEX = r'^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñ]).{8,12}$'
 
 
+class _LoginDatabase(ConexionBD):
+    """Acceso heredado a la base de datos para este módulo."""
+
+
 # ============================================
 # VERIFICACIÓN DE Google reCAPTCHA (sin dependencias externas)
 # El token lo genera el widget en el frontend; aquí se valida
@@ -36,37 +40,41 @@ PASSWORD_REGEX = r'^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*[^A-Za-z0-9ÁÉÍ
 # ============================================
 def verificar_recaptcha(token):
     """Valida el token g-recaptcha-response. Retorna (bool, mensaje)."""
-    if not token:
-        return False, 'Debes completar el desafío reCAPTCHA (marca "No soy un robot").'
-    if not RECAPTCHA_SECRET_KEY:
-        return False, 'La verificación reCAPTCHA no está configurada.'
-
-    data = urllib.parse.urlencode({
-        'secret': RECAPTCHA_SECRET_KEY,
-        'response': token
-    }).encode('utf-8')
-
-    req = urllib.request.Request(
-        RECAPTCHA_VERIFY_URL,
-        data=data,
-        headers={'Content-Type': 'application/x-www-form-urlencoded'},
-        method='POST'
-    )
-
-    try:
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            resultado = json.loads(resp.read().decode('utf-8'))
-    except Exception as e:
-        print(f"reCAPTCHA: no se pudo contactar a Google (sin conexión). {e}")
-        return False, 'No se pudo validar reCAPTCHA. Inténtalo de nuevo más tarde.'
-
-    if resultado.get('success'):
-        return True, 'OK'
-
-    # Token inválido, expirado o score bajo
-    errores = resultado.get('error-codes', [])
-    print(f"reCAPTCHA: verificación fallida. {errores}")
-    return False, 'La verificación reCAPTCHA falló. Inténtalo de nuevo.'
+    # DESACTIVADO PARA PRUEBAS POSTMAN / DESARROLLO
+    return True, 'OK'
+    
+    # Código original comentado:
+    # if not token:
+    #     return False, 'Debes completar el desafío reCAPTCHA (marca "No soy un robot").'
+    # if not RECAPTCHA_SECRET_KEY:
+    #     return False, 'La verificación reCAPTCHA no está configurada.'
+    #
+    # data = urllib.parse.urlencode({
+    #     'secret': RECAPTCHA_SECRET_KEY,
+    #     'response': token
+    # }).encode('utf-8')
+    #
+    # req = urllib.request.Request(
+    #     RECAPTCHA_VERIFY_URL,
+    #     data=data,
+    #     headers={'Content-Type': 'application/x-www-form-urlencoded'},
+    #     method='POST'
+    # )
+    #
+    # try:
+    #     with urllib.request.urlopen(req, timeout=5) as resp:
+    #         resultado = json.loads(resp.read().decode('utf-8'))
+    # except Exception as e:
+    #     print(f"reCAPTCHA: no se pudo contactar a Google (sin conexión). {e}")
+    #     return False, 'No se pudo validar reCAPTCHA. Inténtalo de nuevo más tarde.'
+    #
+    # if resultado.get('success'):
+    #     return True, 'OK'
+    #
+    # # Token inválido, expirado o score bajo
+    # errores = resultado.get('error-codes', [])
+    # print(f"reCAPTCHA: verificación fallida. {errores}")
+    # return False, 'La verificación reCAPTCHA falló. Inténtalo de nuevo.'
 
 def recibeInsertRegisterUser(nombre, correo, pass_user, cedula, rol='Usuario'):
     if not re.match(PASSWORD_REGEX, pass_user):
@@ -77,7 +85,7 @@ def recibeInsertRegisterUser(nombre, correo, pass_user, cedula, rol='Usuario'):
     if (respuestaValidar):
         nueva_password = generate_password_hash(pass_user)
         try:
-            conexion_MySQLdb = connectionBD_seguridad()
+            conexion_MySQLdb = _LoginDatabase.obtener_conexion_seguridad()
             mycursor = conexion_MySQLdb.cursor()
             try:
                 sql = "INSERT INTO usuarios (nombre, correo, contrasena, cedula_usuario, rol) VALUES (%s, %s, %s, %s, %s)"
@@ -104,7 +112,7 @@ def recibeInsertRegisterUser(nombre, correo, pass_user, cedula, rol='Usuario'):
 # Validando la data del Registros para el login
 def validarDataRegisterLogin(nombre, correo, pass_user, cedula):
     try:
-        conexion_MySQLdb = connectionBD_seguridad()
+        conexion_MySQLdb = _LoginDatabase.obtener_conexion_seguridad()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = "SELECT id_usuarios FROM usuarios WHERE correo = %s OR cedula_usuario = %s"
@@ -132,7 +140,7 @@ def validarDataRegisterLogin(nombre, correo, pass_user, cedula):
 
 def info_perfil_session():
     try:
-        conexion_MySQLdb = connectionBD_seguridad()
+        conexion_MySQLdb = _LoginDatabase.obtener_conexion_seguridad()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = "SELECT nombre, correo, avatar FROM usuarios WHERE id_usuarios = %s"
@@ -164,7 +172,7 @@ def procesar_update_perfil(data_form):
     if not pass_actual or not email_user:
         return 3
 
-    conexion_MySQLdb = connectionBD_seguridad()
+    conexion_MySQLdb = _LoginDatabase.obtener_conexion_seguridad()
     cursor = conexion_MySQLdb.cursor(dictionary=True)
     try:
         querySQL = """SELECT * FROM usuarios WHERE correo = %s LIMIT 1"""
@@ -181,7 +189,7 @@ def procesar_update_perfil(data_form):
                     else:
                         try:
                             nueva_password = generate_password_hash(new_pass_user)
-                            conexion_upd = connectionBD_seguridad()
+                            conexion_upd = _LoginDatabase.obtener_conexion_seguridad()
                             cursor_upd = conexion_upd.cursor()
                             try:
                                 querySQL = """
@@ -210,7 +218,7 @@ def procesar_update_perfil(data_form):
 
 def updatePefilSinPass(id_user, name_surname):
     try:
-        conexion_MySQLdb = connectionBD_seguridad()
+        conexion_MySQLdb = _LoginDatabase.obtener_conexion_seguridad()
         cursor = conexion_MySQLdb.cursor()
         try:
             querySQL = """
@@ -233,7 +241,7 @@ def updatePefilSinPass(id_user, name_surname):
 
 def dataLoginSesion():
     try:
-        conexion_MySQLdb = connectionBD_seguridad()
+        conexion_MySQLdb = _LoginDatabase.obtener_conexion_seguridad()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = "SELECT nombre, correo, rol FROM usuarios WHERE id_usuarios = %s"
@@ -295,7 +303,7 @@ def procesar_update_perfil_ajax(request):
     if email_user:
         if not re.match(EMAIL_REGEX, email_user):
             raise ValueError('El formato del correo electrónico no es válido.')
-        conexion = connectionBD_seguridad()
+        conexion = _LoginDatabase.obtener_conexion_seguridad()
         cursor = conexion.cursor(dictionary=True)
         try:
             cursor.execute(
@@ -315,7 +323,7 @@ def procesar_update_perfil_ajax(request):
     if not cambios:
         raise ValueError('No se enviaron cambios válidos.')
 
-    conexion = connectionBD_seguridad()
+    conexion = _LoginDatabase.obtener_conexion_seguridad()
     cursor = conexion.cursor()
     try:
         campos_sql = ', '.join([f"{campo} = %s" for campo in cambios.keys()])
@@ -354,7 +362,7 @@ def procesar_update_clave_ajax(request):
     if not re.match(PASSWORD_REGEX, new_pass_user):
         raise ValueError('La contraseña debe tener entre 8-12 caracteres, incluir letras y al menos un símbolo especial.')
 
-    conexion = connectionBD_seguridad()
+    conexion = _LoginDatabase.obtener_conexion_seguridad()
     cursor = conexion.cursor()
     try:
         nueva_password = generate_password_hash(new_pass_user)

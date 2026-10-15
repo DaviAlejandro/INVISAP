@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
 import uuid  # Modulo de python para crear un string
 
-from conexion.conexionBD import connectionBD  # Conexión a BD
+from conexion.conexionBD import ConexionBD
 
 import datetime
 import re
@@ -19,9 +19,13 @@ import openpyxl  # Para generar el excel
 from flask import send_file
 
 
+class _HomeDatabase(ConexionBD):
+    """Acceso heredado a la base de datos para este módulo."""
+
+
 def _asegurar_tabla_tbl_empleados():
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         if conexion_MySQLdb:
             cursor = conexion_MySQLdb.cursor()
             try:
@@ -57,7 +61,7 @@ def procesar_form_empleado(dataForm, foto_perfil):
 
     result_foto_perfil = procesar_imagen_perfil(foto_perfil) if foto_perfil else None
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         cursor = conexion_MySQLdb.cursor()
         try:
             sql = "INSERT INTO tbl_empleados (nombre_empleado, apellido_empleado, sexo_empleado, telefono_empleado, email_empleado, profesion_empleado, foto_empleado, salario_empleado) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
@@ -110,7 +114,7 @@ def procesar_imagen_perfil(foto):
 def sql_lista_empleadosBD():
     _asegurar_tabla_tbl_empleados()
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = ("""
@@ -143,7 +147,7 @@ def sql_lista_empleadosBD():
 def sql_detalles_empleadosBD(idEmpleado):
     _asegurar_tabla_tbl_empleados()
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = ("""
@@ -181,7 +185,7 @@ def sql_detalles_empleadosBD(idEmpleado):
 def empleadosReporte():
     _asegurar_tabla_tbl_empleados()
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = ("""
@@ -217,7 +221,7 @@ def empleadosReporte():
 def buscarEmpleadoBD(search):
     _asegurar_tabla_tbl_empleados()
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         mycursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = ("""
@@ -249,7 +253,7 @@ def buscarEmpleadoBD(search):
 def buscarEmpleadoUnico(id):
     _asegurar_tabla_tbl_empleados()
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         mycursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = ("""
@@ -280,7 +284,7 @@ def buscarEmpleadoUnico(id):
 def procesar_actualizacion_form(data):
     _asegurar_tabla_tbl_empleados()
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         cursor = conexion_MySQLdb.cursor()
         try:
             # Extraer y procesar datos del formulario
@@ -340,7 +344,7 @@ def procesar_actualizacion_form(data):
 # Lista de Usuarios creados
 def lista_usuariosBD():
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         try:
             querySQL = "SELECT id, name_surname, email_user, pass_user, created_user FROM users"
@@ -358,7 +362,7 @@ def lista_usuariosBD():
 def eliminarEmpleado(id_empleado, foto_empleado):
     _asegurar_tabla_tbl_empleados()
     try:
-        conexion_MySQLdb = connectionBD()
+        conexion_MySQLdb = _HomeDatabase.obtener_conexion()
         cursor = conexion_MySQLdb.cursor()
         try:
             querySQL = "DELETE FROM tbl_empleados WHERE id_empleado=%s"

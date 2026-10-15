@@ -1,10 +1,15 @@
-from conexion.conexionBD import connectionBD_invilara as connectionBD
+from conexion.conexionBD import ConexionBD
 from services.bitacora_service import BitacoraService
 from flask import session
 
+
+class _SolicitanteDatabase(ConexionBD):
+    """Acceso heredado a la base de datos para este módulo."""
+
+
 def crear_solicitante(datos):
     try:
-        conexion = connectionBD()
+        conexion = _SolicitanteDatabase.obtener_conexion()
         if not conexion: return 0
         cursor = conexion.cursor()
         try:
@@ -35,7 +40,7 @@ def crear_solicitante(datos):
 
 def obtener_solicitantes():
     try:
-        conexion = connectionBD()
+        conexion = _SolicitanteDatabase.obtener_conexion()
         if not conexion: return []
         cursor = conexion.cursor(dictionary=True)
         try:
@@ -58,7 +63,7 @@ def obtener_solicitantes():
 
 def obtener_solicitante_por_id(id_persona):
     try:
-        conexion = connectionBD()
+        conexion = _SolicitanteDatabase.obtener_conexion()
         if not conexion: return None
         cursor = conexion.cursor(dictionary=True)
         try:
@@ -74,7 +79,7 @@ def obtener_solicitante_por_id(id_persona):
 
 def actualizar_solicitante(datos):
     try:
-        conexion = connectionBD()
+        conexion = _SolicitanteDatabase.obtener_conexion()
         if not conexion: return 0
         cursor = conexion.cursor()
         try:
@@ -101,7 +106,7 @@ def actualizar_solicitante(datos):
 
 def eliminar_solicitante(id_persona):
     try:
-        conexion = connectionBD()
+        conexion = _SolicitanteDatabase.obtener_conexion()
         if not conexion: return 0
         cursor = conexion.cursor()
         try:

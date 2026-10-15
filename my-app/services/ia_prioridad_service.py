@@ -9,7 +9,7 @@ from datetime import datetime
 
 import requests
 
-from conexion.base_conexion import BaseConexionBD
+from conexion.conexionBD import ConexionBD
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "127.0.0.1:11434").rstrip("/")
 if not OLLAMA_HOST.startswith(("http://", "https://")):
@@ -370,7 +370,7 @@ _scheduler_lock = threading.Lock()
 _worker_active = False
 
 
-class PrioridadWorkerModel(BaseConexionBD):
+class PrioridadWorkerModel(ConexionBD):
     """Modelo del worker — encapsulamiento POO con atributos privados y setters validados por regex."""
 
     _RE_JUSTIFICACION = re.compile(r'^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñ\s.,;:!?\'"\-]{3,150}$')

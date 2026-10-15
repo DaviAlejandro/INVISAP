@@ -2,13 +2,18 @@ from app import app
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify, Response
 from mysql.connector.errors import Error
 from flask import jsonify
-from conexion.conexionBD import connectionBD
+from conexion.conexionBD import ConexionBD
 import time
 
 
 # Cache simple en memoria para gráficos del dashboard (TTL 5 minutos)
 _DASHBOARD_CHART_CACHE = {}
 _DASHBOARD_CHART_TTL = 300
+
+
+class _HomeRouterDatabase(ConexionBD):
+    """Acceso heredado a la base de datos para este módulo."""
+
 
 def _get_cached_chart(key):
     entry = _DASHBOARD_CHART_CACHE.get(key)
@@ -456,7 +461,7 @@ def api_clasificar_ia(id_solicitud):
 def api_solicitudes_ids():
     if 'conectado' not in session:
         return jsonify([]), 401
-    conexion = connectionBD()
+    conexion = _HomeRouterDatabase.obtener_conexion()
     try:
         cursor = conexion.cursor()
         cursor.execute("SELECT id_solicitudes FROM solicitudes WHERE estado = 1")

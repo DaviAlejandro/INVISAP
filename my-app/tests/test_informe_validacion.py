@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from models.model_informe_avance import InformeAvanceModel
+from conexion.conexionBD import ConexionBD
 
 
 class InformeValidacionTestCase(unittest.TestCase):
@@ -24,7 +25,7 @@ class InformeValidacionTestCase(unittest.TestCase):
         cursor = conexion.cursor.return_value
         cursor.fetchone.return_value = (27,)
 
-        with patch('conexion.base_conexion.BaseConexionBD.obtener_conexion', return_value=conexion):
+        with patch.object(ConexionBD, 'obtener_conexion', return_value=conexion):
             valido = self.modelo.validar_gerente_activo('27')
 
         self.assertTrue(valido)
@@ -37,7 +38,7 @@ class InformeValidacionTestCase(unittest.TestCase):
         conexion.close.assert_called_once()
 
     def test_rechaza_identificador_no_numerico_sin_consultar_bd(self):
-        with patch('conexion.base_conexion.BaseConexionBD.obtener_conexion') as conectar:
+        with patch.object(ConexionBD, 'obtener_conexion') as conectar:
             self.assertFalse(self.modelo.validar_gerente_activo('no-es-un-id'))
 
         conectar.assert_not_called()

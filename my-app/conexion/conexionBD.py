@@ -92,3 +92,26 @@ def connectionBD_invilara_seguridad():
     except Exception as e:
         print(f"Error en la conexión a la base de datos: {e}")
         return None
+
+class ConexionBD:
+    @staticmethod
+    def configuracion_db():
+        return get_db_config()
+    @staticmethod
+    def obtener_conexion():
+        return connectionBD_invilara()
+    @staticmethod
+    def obtener_conexion_estricta():
+        return connectionBD()
+    @staticmethod
+    def obtener_conexion_seguridad():
+        return connectionBD_seguridad()
+    @staticmethod
+    def obtener_conexion_seguridad_segura():
+        return connectionBD_invilara_seguridad()
+
+
+# Aliases para uso directo por herencia/import flexible
+ConexionBD_seguridad = ConexionBD.obtener_conexion_seguridad
+ConexionBD_invilara = ConexionBD.obtener_conexion
+ConexionBD_invilara_seguridad = ConexionBD.obtener_conexion_seguridad_segura

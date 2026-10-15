@@ -10,7 +10,6 @@ import logging
 import traceback
 from datetime import datetime
 from decimal import Decimal
-from conexion.base_conexion import BaseConexionBD
 from models.base_model import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -151,7 +150,7 @@ class RespaldoModel(BaseModel):
 
     @staticmethod
     def _obtener_config_bd():
-        cfg = BaseConexionBD.configuracion_db()
+        cfg = RespaldoModel.configuracion_db()
         host = cfg['host']
         user = cfg['user']
         password = cfg['password']

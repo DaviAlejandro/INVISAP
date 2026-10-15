@@ -1,6 +1,5 @@
 from werkzeug.security import generate_password_hash
 import os
-from conexion.base_conexion import BaseConexionBD
 from models.base_model import BaseModel
 
 DEFAULT_AVATAR = 'assets/img/avatars/1.png'
@@ -194,7 +193,7 @@ class UsuarioModel(BaseModel):
 
     @staticmethod
     def existe_y_activo(id_usuario):
-        conn = BaseConexionBD.obtener_conexion_seguridad()
+        conn = self.obtener_conexion_seguridad()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT id_usuarios FROM usuarios WHERE id_usuarios = %s", (id_usuario,))
         result = cursor.fetchone()

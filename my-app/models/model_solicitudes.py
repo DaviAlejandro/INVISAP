@@ -4,7 +4,6 @@ Refactorizado con encapsulamiento, getters/setters y validaciones Regex.
 """
 import re
 from datetime import datetime
-from conexion.base_conexion import BaseConexionBD
 from models.base_model import BaseModel
 
 
@@ -169,7 +168,7 @@ class SolicitudModel(BaseModel):
     # --- MÉTODOS PRIVADOS (Base de Datos) ---
     @staticmethod
     def _con():
-        return BaseConexionBD.obtener_conexion()
+        return SolicitudModel.obtener_conexion()
 
     @staticmethod
     def _cerrar(conn, cursor):

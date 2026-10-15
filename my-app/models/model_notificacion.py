@@ -11,7 +11,6 @@ conexiones.
 """
 import re
 from datetime import datetime
-from conexion.base_conexion import BaseConexionBD
 from models.base_model import BaseModel
 
 
@@ -26,7 +25,7 @@ class NotificacionModel(BaseModel):
     # -----------------------------------------------------------------
     @staticmethod
     def _con():
-        return BaseConexionBD.obtener_conexion_seguridad()
+        return NotificacionModel.obtener_conexion_seguridad()
 
     def _asegurar_tabla(self):
         """Crea la tabla notificaciones si no existe y asegura columnas nuevas."""

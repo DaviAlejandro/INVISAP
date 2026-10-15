@@ -9,10 +9,15 @@ from models.model_notificacion import notificar_a_roles
 from werkzeug.utils import secure_filename
 import os
 
-from conexion.conexionBD import connectionBD_invilara
+from conexion.conexionBD import ConexionBD
 
 # Crear Blueprint para el módulo
 informe_avance_bp = Blueprint('informe_avance_bp', __name__)
+
+
+class _InformeAvanceDatabase(ConexionBD):
+    """Acceso heredado a la base de datos para este módulo."""
+
 
 # Agregar al final del archivo controller_informe_avance.py, antes de los reportes
 
@@ -36,7 +41,7 @@ def api_obtener_evidencias():
                 'message': 'Etapa inválida'
             }), 400
         
-        conn = connectionBD_invilara()
+        conn = _InformeAvanceDatabase.obtener_conexion()
         if not conn:
             return jsonify([]), 500
         
@@ -73,7 +78,7 @@ def api_obtener_inspectores():
         return jsonify([]), 401
     
     try:
-        conn = connectionBD_invilara()
+        conn = _InformeAvanceDatabase.obtener_conexion()
         if not conn:
             return jsonify([]), 500
         
@@ -376,7 +381,7 @@ def api_actualizar_informe():
                 }), 400
         
         try:
-            conn = connectionBD_invilara()
+            conn = _InformeAvanceDatabase.obtener_conexion()
             if conn:
                 cur = conn.cursor()
                 cur.execute("SHOW COLUMNS FROM avance LIKE 'descripcion'")

@@ -13,7 +13,6 @@ except Exception:
     # Fallback para Windows sin tzdata: Venezuela está en UTC-4 (sin horario de verano desde 2016)
     TZ_VENEZUELA = timezone(timedelta(hours=-4))
 
-from conexion.base_conexion import BaseConexionBD
 from models.base_model import BaseModel
 
 
@@ -38,7 +37,7 @@ class BitacoraModel(BaseModel):
     @staticmethod
     def _con():
         """Abre y retorna una conexión nueva."""
-        return BaseConexionBD.obtener_conexion_seguridad()
+        return BitacoraModel.obtener_conexion_seguridad()
 
     # -----------------------------------------------------------------
     # Métodos privados — SQL

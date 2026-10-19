@@ -1,5 +1,11 @@
 .venv/
+venv/
+env/
+ENV/
+.env
 __pycache__/
 *.py[cod]
 .pytest_cache/
 instance/
+.playwright/
+node_modules/

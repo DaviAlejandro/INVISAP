@@ -206,7 +206,7 @@ class InformeAvanceModel(BaseModel):
         para almacenar hasta 5 IDs separados por comas sin desbordar (DataError)."""
         for col in ('evidencia_antes', 'evidencia_durante', 'evidencia_despues'):
             try:
-                cur.execute(f"SHOW COLUMNS FROM informe_avance_obra LIKE '{col}'")
+                cur.execute("SHOW COLUMNS FROM informe_avance_obra LIKE %s", (col,))
                 row = cur.fetchone()
                 if row and 'varchar(255)' not in str(row[1]).lower():
                     cur.execute(f"ALTER TABLE informe_avance_obra MODIFY COLUMN {col} VARCHAR(255) NOT NULL DEFAULT ''")
@@ -230,7 +230,7 @@ class InformeAvanceModel(BaseModel):
                             conn.commit()
                             print("[DB] Columna 'avance.descripcion' ampliada a TEXT para observaciones largas")
 
-                    cur.execute("SHOW COLUMNS FROM avance LIKE 'obra_semaforo_id_semaforo'")
+                    cur.execute("SHOW COLUMNS FROM avance LIKE %s", ('obra_semaforo_id_semaforo',))
                     usa_semaforo = cur.fetchone() is not None
 
                     columnas_obra = [
@@ -240,7 +240,7 @@ class InformeAvanceModel(BaseModel):
                         ("obra_gestionar_proyectos_codigo_proyecto", "VARCHAR(15) NOT NULL DEFAULT 'FRE-001'"),
                     ]
                     for col_name, col_def in columnas_obra:
-                        cur.execute(f"SHOW COLUMNS FROM avance LIKE '{col_name}'")
+                        cur.execute("SHOW COLUMNS FROM avance LIKE %s", (col_name,))
                         if not cur.fetchone():
                             cur.execute(f"ALTER TABLE avance ADD COLUMN {col_name} {col_def}")
                             print(f"[DB] Columna '{col_name}' agregada a tabla avance")

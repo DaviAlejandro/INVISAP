@@ -1,6 +1,6 @@
 {
   "errors": [],
-  "generated_at": "2026-10-19T02:05:13Z",
+  "generated_at": "2026-10-23T07:35:28Z",
   "metrics": {
     ".\\app.py": {
       "CONFIDENCE.HIGH": 0,
@@ -25,19 +25,6 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 18,
-      "nosec": 0,
-      "skipped_tests": 0
-    },
-    ".\\conexion\\conexionBD.py": {
-      "CONFIDENCE.HIGH": 0,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 0,
-      "CONFIDENCE.UNDEFINED": 0,
-      "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 0,
-      "SEVERITY.MEDIUM": 0,
-      "SEVERITY.UNDEFINED": 0,
-      "loc": 101,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -263,15 +250,15 @@
       "skipped_tests": 0
     },
     ".\\controllers\\funciones_home.py": {
-      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
       "SEVERITY.LOW": 0,
-      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 318,
+      "loc": 317,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -284,7 +271,7 @@
       "SEVERITY.LOW": 1,
       "SEVERITY.MEDIUM": 2,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 279,
+      "loc": 302,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -392,19 +379,6 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    ".\\generar_vendor_min.py": {
-      "CONFIDENCE.HIGH": 4,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 0,
-      "CONFIDENCE.UNDEFINED": 0,
-      "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 4,
-      "SEVERITY.MEDIUM": 0,
-      "SEVERITY.UNDEFINED": 0,
-      "loc": 128,
-      "nosec": 0,
-      "skipped_tests": 0
-    },
     ".\\models.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
@@ -453,7 +427,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 35,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 514,
+      "loc": 519,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -479,7 +453,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 166,
+      "loc": 168,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -570,7 +544,7 @@
       "SEVERITY.LOW": 3,
       "SEVERITY.MEDIUM": 7,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 686,
+      "loc": 690,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -674,7 +648,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 421,
+      "loc": 425,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -687,7 +661,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 291,
+      "loc": 295,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -765,7 +739,7 @@
       "SEVERITY.LOW": 1,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 308,
+      "loc": 309,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -856,7 +830,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 2,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 45,
+      "loc": 86,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -886,81 +860,16 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    ".\\tests\\test_contrataciones_bitacora.py": {
-      "CONFIDENCE.HIGH": 0,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 0,
-      "CONFIDENCE.UNDEFINED": 0,
-      "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 0,
-      "SEVERITY.MEDIUM": 0,
-      "SEVERITY.UNDEFINED": 0,
-      "loc": 78,
-      "nosec": 0,
-      "skipped_tests": 0
-    },
-    ".\\tests\\test_informe_validacion.py": {
-      "CONFIDENCE.HIGH": 0,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 0,
-      "CONFIDENCE.UNDEFINED": 0,
-      "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 0,
-      "SEVERITY.MEDIUM": 0,
-      "SEVERITY.UNDEFINED": 0,
-      "loc": 36,
-      "nosec": 0,
-      "skipped_tests": 0
-    },
-    ".\\tests\\test_parametrizacion_reportes.py": {
-      "CONFIDENCE.HIGH": 0,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 0,
-      "CONFIDENCE.UNDEFINED": 0,
-      "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 0,
-      "SEVERITY.MEDIUM": 0,
-      "SEVERITY.UNDEFINED": 0,
-      "loc": 211,
-      "nosec": 0,
-      "skipped_tests": 0
-    },
-    ".\\tests\\test_security_controls.py": {
-      "CONFIDENCE.HIGH": 0,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 0,
-      "CONFIDENCE.UNDEFINED": 0,
-      "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 0,
-      "SEVERITY.MEDIUM": 0,
-      "SEVERITY.UNDEFINED": 0,
-      "loc": 23,
-      "nosec": 0,
-      "skipped_tests": 0
-    },
-    ".\\verificar_tours.py": {
-      "CONFIDENCE.HIGH": 0,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 0,
-      "CONFIDENCE.UNDEFINED": 0,
-      "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 0,
-      "SEVERITY.MEDIUM": 0,
-      "SEVERITY.UNDEFINED": 0,
-      "loc": 112,
-      "nosec": 0,
-      "skipped_tests": 0
-    },
     "_totals": {
-      "CONFIDENCE.HIGH": 59,
+      "CONFIDENCE.HIGH": 54,
       "CONFIDENCE.LOW": 12,
       "CONFIDENCE.MEDIUM": 47,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 61,
-      "SEVERITY.MEDIUM": 57,
+      "SEVERITY.LOW": 57,
+      "SEVERITY.MEDIUM": 56,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 17609,
+      "loc": 17003,
       "nosec": 0,
       "skipped_tests": 0
     }
@@ -1114,27 +1023,7 @@
       "test_name": "try_except_pass"
     },
     {
-      "code": "99             # Dando permiso a la carpeta\n100             os.chmod(upload_dir, 0o755)\n101 \n",
-      "col_offset": 12,
-      "end_col_offset": 39,
-      "filename": ".\\controllers\\funciones_home.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 732,
-        "link": "https://cwe.mitre.org/data/definitions/732.html"
-      },
-      "issue_severity": "MEDIUM",
-      "issue_text": "Chmod setting a permissive mask 0o755 on file (upload_dir).",
-      "line_number": 100,
-      "line_range": [
-        100
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b103_set_bad_file_permissions.html",
-      "test_id": "B103",
-      "test_name": "set_bad_file_permissions"
-    },
-    {
-      "code": "28 # Regex: 8-12 caracteres, letras y al menos un s\u00edmbolo especial.\n29 PASSWORD_REGEX = r'^(?=.*[A-Za-z\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1])(?=.*[^A-Za-z0-9\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1]).{8,12}$'\n30 \n",
+      "code": "29 # Regex: 8-12 caracteres, letras y al menos un s\u00edmbolo especial.\n30 PASSWORD_REGEX = r'^(?=.*[A-Za-z\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1])(?=.*[^A-Za-z0-9\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1]).{8,12}$'\n31 \n",
       "col_offset": 17,
       "end_col_offset": 109,
       "filename": ".\\controllers\\funciones_login.py",
@@ -1145,36 +1034,36 @@
       },
       "issue_severity": "LOW",
       "issue_text": "Possible hardcoded password: '^(?=.*[A-Za-z\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1])(?=.*[^A-Za-z0-9\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1]).{8,12}$'",
-      "line_number": 29,
+      "line_number": 30,
       "line_range": [
-        29
+        30
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
       "test_id": "B105",
       "test_name": "hardcoded_password_string"
     },
     {
-      "code": "282         os.makedirs(upload_dir)\n283         os.chmod(upload_dir, 0o755)\n284 \n",
-      "col_offset": 8,
-      "end_col_offset": 35,
+      "code": "60     try:\n61         with urllib.request.urlopen(req, timeout=5) as resp:\n62             resultado = json.loads(resp.read().decode('utf-8'))\n",
+      "col_offset": 13,
+      "end_col_offset": 51,
       "filename": ".\\controllers\\funciones_login.py",
       "issue_confidence": "HIGH",
       "issue_cwe": {
-        "id": 732,
-        "link": "https://cwe.mitre.org/data/definitions/732.html"
+        "id": 22,
+        "link": "https://cwe.mitre.org/data/definitions/22.html"
       },
       "issue_severity": "MEDIUM",
-      "issue_text": "Chmod setting a permissive mask 0o755 on file (upload_dir).",
-      "line_number": 283,
+      "issue_text": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+      "line_number": 61,
       "line_range": [
-        283
+        61
       ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b103_set_bad_file_permissions.html",
-      "test_id": "B103",
-      "test_name": "set_bad_file_permissions"
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen",
+      "test_id": "B310",
+      "test_name": "blacklist"
     },
     {
-      "code": "329         campos_sql = ', '.join([f\"{campo} = %s\" for campo in cambios.keys()])\n330         sql = f\"UPDATE usuarios SET {campos_sql} WHERE id_usuarios = %s\"\n331         params = list(cambios.values()) + [id_user]\n",
+      "code": "321         )\n322         sql = f\"UPDATE usuarios SET {campos_sql} WHERE id_usuarios = %s\"\n323         params = list(cambios.values()) + [id_user]\n",
       "col_offset": 16,
       "end_col_offset": 36,
       "filename": ".\\controllers\\funciones_login.py",
@@ -1185,9 +1074,9 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 330,
+      "line_number": 322,
       "line_range": [
-        330
+        322
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
@@ -1212,86 +1101,6 @@
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
       "test_id": "B105",
       "test_name": "hardcoded_password_string"
-    },
-    {
-      "code": "18 import shutil\n19 import subprocess\n20 import sys\n",
-      "col_offset": 0,
-      "end_col_offset": 17,
-      "filename": ".\\generar_vendor_min.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 78,
-        "link": "https://cwe.mitre.org/data/definitions/78.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Consider possible security implications associated with the subprocess module.",
-      "line_number": 19,
-      "line_range": [
-        19
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
-      "test_id": "B404",
-      "test_name": "blacklist"
-    },
-    {
-      "code": "79 \n80     proc = subprocess.run(['node', '--check', str(destino)], capture_output=True)\n81     if proc.returncode != 0:\n",
-      "col_offset": 11,
-      "end_col_offset": 81,
-      "filename": ".\\generar_vendor_min.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 78,
-        "link": "https://cwe.mitre.org/data/definitions/78.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Starting a process with a partial executable path",
-      "line_number": 80,
-      "line_range": [
-        80
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html",
-      "test_id": "B607",
-      "test_name": "start_process_with_partial_path"
-    },
-    {
-      "code": "79 \n80     proc = subprocess.run(['node', '--check', str(destino)], capture_output=True)\n81     if proc.returncode != 0:\n",
-      "col_offset": 11,
-      "end_col_offset": 81,
-      "filename": ".\\generar_vendor_min.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 78,
-        "link": "https://cwe.mitre.org/data/definitions/78.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "subprocess call - check for execution of untrusted input.",
-      "line_number": 80,
-      "line_range": [
-        80
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
-      "test_id": "B603",
-      "test_name": "subprocess_without_shell_equals_true"
-    },
-    {
-      "code": "121             try:\n122                 subprocess.run(comando, check=True, capture_output=True)\n123             except FileNotFoundError:\n",
-      "col_offset": 16,
-      "end_col_offset": 72,
-      "filename": ".\\generar_vendor_min.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 78,
-        "link": "https://cwe.mitre.org/data/definitions/78.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "subprocess call - check for execution of untrusted input.",
-      "line_number": 122,
-      "line_range": [
-        122
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
-      "test_id": "B603",
-      "test_name": "subprocess_without_shell_equals_true"
     },
     {
       "code": "43                 cur.close()\n44         except Exception:\n45             pass\n46         try:\n",
@@ -1336,7 +1145,7 @@
       "test_name": "try_except_pass"
     },
     {
-      "code": "88             if agrupacion == 'mes':\n89                 cursor.execute(f\"\"\"\n90                     SELECT DATE_FORMAT(s.fecha, '%Y-%m') as label, COUNT(*) as valor \n91                     FROM solicitudes s\n92                     JOIN persona p ON s.persona_id_persona = p.id_persona\n93                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n94                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n95                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n96                     {where_sql}\n97                     GROUP BY DATE_FORMAT(s.fecha, '%Y-%m') ORDER BY label ASC\n98                 \"\"\", params)\n99                 stats['por_mes'] = cursor.fetchall()\n",
+      "code": "93             if agrupacion == 'mes':\n94                 cursor.execute(f\"\"\"\n95                     SELECT DATE_FORMAT(s.fecha, '%Y-%m') as label, COUNT(*) as valor \n96                     FROM solicitudes s\n97                     JOIN persona p ON s.persona_id_persona = p.id_persona\n98                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n99                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n100                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n101                     {where_sql}\n102                     GROUP BY DATE_FORMAT(s.fecha, '%Y-%m') ORDER BY label ASC\n103                 \"\"\", params)\n104                 stats['por_mes'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1347,25 +1156,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 89,
+      "line_number": 94,
       "line_range": [
-        89,
-        90,
-        91,
-        92,
-        93,
         94,
         95,
         96,
         97,
-        98
+        98,
+        99,
+        100,
+        101,
+        102,
+        103
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "100             elif agrupacion == 'semana':\n101                 cursor.execute(f\"\"\"\n102                     SELECT DATE_FORMAT(s.fecha, '%x-W%v') as label, COUNT(*) as valor \n103                     FROM solicitudes s\n104                     JOIN persona p ON s.persona_id_persona = p.id_persona\n105                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n106                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n107                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n108                     {where_sql}\n109                     GROUP BY DATE_FORMAT(s.fecha, '%x-W%v') ORDER BY label ASC\n110                 \"\"\", params)\n111                 stats['por_semana'] = cursor.fetchall()\n",
+      "code": "105             elif agrupacion == 'semana':\n106                 cursor.execute(f\"\"\"\n107                     SELECT DATE_FORMAT(s.fecha, '%x-W%v') as label, COUNT(*) as valor \n108                     FROM solicitudes s\n109                     JOIN persona p ON s.persona_id_persona = p.id_persona\n110                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n111                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n112                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n113                     {where_sql}\n114                     GROUP BY DATE_FORMAT(s.fecha, '%x-W%v') ORDER BY label ASC\n115                 \"\"\", params)\n116                 stats['por_semana'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1376,25 +1185,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 101,
+      "line_number": 106,
       "line_range": [
-        101,
-        102,
-        103,
-        104,
-        105,
         106,
         107,
         108,
         109,
-        110
+        110,
+        111,
+        112,
+        113,
+        114,
+        115
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "112             else:\n113                 cursor.execute(f\"\"\"\n114                     SELECT DATE(s.fecha) as label, COUNT(*) as valor \n115                     FROM solicitudes s\n116                     JOIN persona p ON s.persona_id_persona = p.id_persona\n117                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n118                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n119                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n120                     {where_sql}\n121                     GROUP BY DATE(s.fecha) ORDER BY label ASC\n122                 \"\"\", params)\n123                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "117             else:\n118                 cursor.execute(f\"\"\"\n119                     SELECT DATE(s.fecha) as label, COUNT(*) as valor \n120                     FROM solicitudes s\n121                     JOIN persona p ON s.persona_id_persona = p.id_persona\n122                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n123                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n124                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n125                     {where_sql}\n126                     GROUP BY DATE(s.fecha) ORDER BY label ASC\n127                 \"\"\", params)\n128                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1405,25 +1214,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 113,
+      "line_number": 118,
       "line_range": [
-        113,
-        114,
-        115,
-        116,
-        117,
         118,
         119,
         120,
         121,
-        122
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "124 \n125             cursor.execute(f\"\"\"\n126                 SELECT s.tipo_solicitud as label, COUNT(*) as valor \n127                 FROM solicitudes s\n128                 JOIN persona p ON s.persona_id_persona = p.id_persona\n129                 LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n130                 LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n131                 LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n132                 {where_sql}\n133                 GROUP BY s.tipo_solicitud\n134             \"\"\", params)\n135             stats['por_tipo'] = cursor.fetchall()\n",
+      "code": "129 \n130             cursor.execute(f\"\"\"\n131                 SELECT s.tipo_solicitud as label, COUNT(*) as valor \n132                 FROM solicitudes s\n133                 JOIN persona p ON s.persona_id_persona = p.id_persona\n134                 LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n135                 LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n136                 LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n137                 {where_sql}\n138                 GROUP BY s.tipo_solicitud\n139             \"\"\", params)\n140             stats['por_tipo'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1434,25 +1243,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 125,
+      "line_number": 130,
       "line_range": [
-        125,
-        126,
-        127,
-        128,
-        129,
         130,
         131,
         132,
         133,
-        134
+        134,
+        135,
+        136,
+        137,
+        138,
+        139
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "136 \n137             cursor.execute(f\"\"\"\n138                 SELECT s.estatus_solicitud as label, COUNT(*) as valor \n139                 FROM solicitudes s\n140                 JOIN persona p ON s.persona_id_persona = p.id_persona\n141                 LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n142                 LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n143                 LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n144                 {where_sql}\n145                 GROUP BY s.estatus_solicitud\n146             \"\"\", params)\n147             stats['por_estatus'] = cursor.fetchall()\n",
+      "code": "141 \n142             cursor.execute(f\"\"\"\n143                 SELECT s.estatus_solicitud as label, COUNT(*) as valor \n144                 FROM solicitudes s\n145                 JOIN persona p ON s.persona_id_persona = p.id_persona\n146                 LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n147                 LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n148                 LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n149                 {where_sql}\n150                 GROUP BY s.estatus_solicitud\n151             \"\"\", params)\n152             stats['por_estatus'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1463,25 +1272,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 137,
+      "line_number": 142,
       "line_range": [
-        137,
-        138,
-        139,
-        140,
-        141,
         142,
         143,
         144,
         145,
-        146
+        146,
+        147,
+        148,
+        149,
+        150,
+        151
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "149             if filtros and any(k in filtros for k in ['municipio', 'parroquia', 'cedula', 'direccion', 'telefono', 'correo', 'sector', 'ambito']):\n150                 cursor.execute(f\"\"\"\n151                     SELECT p.municipio as label, COUNT(*) as valor\n152                     FROM solicitudes s\n153                     JOIN persona p ON s.persona_id_persona = p.id_persona\n154                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n155                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n156                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n157                     {where_sql}\n158                     GROUP BY p.municipio\n159                 \"\"\", params)\n160                 stats['por_municipio'] = cursor.fetchall()\n",
+      "code": "154             if filtros and any(k in filtros for k in ['municipio', 'parroquia', 'cedula', 'direccion', 'telefono', 'correo', 'sector', 'ambito']):\n155                 cursor.execute(f\"\"\"\n156                     SELECT p.municipio as label, COUNT(*) as valor\n157                     FROM solicitudes s\n158                     JOIN persona p ON s.persona_id_persona = p.id_persona\n159                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n160                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n161                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n162                     {where_sql}\n163                     GROUP BY p.municipio\n164                 \"\"\", params)\n165                 stats['por_municipio'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1492,25 +1301,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 150,
+      "line_number": 155,
       "line_range": [
-        150,
-        151,
-        152,
-        153,
-        154,
         155,
         156,
         157,
         158,
-        159
+        159,
+        160,
+        161,
+        162,
+        163,
+        164
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "161 \n162                 cursor.execute(f\"\"\"\n163                     SELECT p.parroquia as label, COUNT(*) as valor\n164                     FROM solicitudes s\n165                     JOIN persona p ON s.persona_id_persona = p.id_persona\n166                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n167                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n168                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n169                     {where_sql}\n170                     GROUP BY p.parroquia\n171                 \"\"\", params)\n172                 stats['por_parroquia'] = cursor.fetchall()\n",
+      "code": "166 \n167                 cursor.execute(f\"\"\"\n168                     SELECT p.parroquia as label, COUNT(*) as valor\n169                     FROM solicitudes s\n170                     JOIN persona p ON s.persona_id_persona = p.id_persona\n171                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n172                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n173                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n174                     {where_sql}\n175                     GROUP BY p.parroquia\n176                 \"\"\", params)\n177                 stats['por_parroquia'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1521,25 +1330,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 162,
+      "line_number": 167,
       "line_range": [
-        162,
-        163,
-        164,
-        165,
-        166,
         167,
         168,
         169,
         170,
-        171
+        171,
+        172,
+        173,
+        174,
+        175,
+        176
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "173 \n174                 cursor.execute(f\"\"\"\n175                     SELECT com.sector as label, COUNT(*) as valor\n176                     FROM solicitudes s\n177                     JOIN persona p ON s.persona_id_persona = p.id_persona\n178                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n179                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n180                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n181                     {where_sql} AND com.sector IS NOT NULL AND com.sector != ''\n182                     GROUP BY com.sector\n183                 \"\"\", params)\n184                 stats['por_sector'] = cursor.fetchall()\n",
+      "code": "178 \n179                 cursor.execute(f\"\"\"\n180                     SELECT com.sector as label, COUNT(*) as valor\n181                     FROM solicitudes s\n182                     JOIN persona p ON s.persona_id_persona = p.id_persona\n183                     LEFT JOIN particular part ON p.id_persona = part.persona_id_persona\n184                     LEFT JOIN institucion inst ON p.id_persona = inst.persona_id_persona\n185                     LEFT JOIN comunidad com ON p.id_persona = com.persona_id_persona\n186                     {where_sql} AND com.sector IS NOT NULL AND com.sector != ''\n187                     GROUP BY com.sector\n188                 \"\"\", params)\n189                 stats['por_sector'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1550,25 +1359,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 174,
+      "line_number": 179,
       "line_range": [
-        174,
-        175,
-        176,
-        177,
-        178,
         179,
         180,
         181,
         182,
-        183
+        183,
+        184,
+        185,
+        186,
+        187,
+        188
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "215             if agrupacion == 'mes':\n216                 cursor.execute(f\"\"\"\n217                     SELECT DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%Y-%m') as label, COUNT(*) as valor\n218                     FROM obra o\n219                     JOIN semaforo s ON o.estado = s.id_semaforo\n220                     JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n221                     LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n222                     LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n223                     LEFT JOIN empleados e ON e.id_empleados = a.gerente\n224                     {where_sql}\n225                     GROUP BY DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%Y-%m') ORDER BY label ASC\n226                 \"\"\", params)\n227                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "220             if agrupacion == 'mes':\n221                 cursor.execute(f\"\"\"\n222                     SELECT DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%Y-%m') as label, COUNT(*) as valor\n223                     FROM obra o\n224                     JOIN semaforo s ON o.estado = s.id_semaforo\n225                     JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n226                     LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n227                     LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n228                     LEFT JOIN empleados e ON e.id_empleados = a.gerente\n229                     {where_sql}\n230                     GROUP BY DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%Y-%m') ORDER BY label ASC\n231                 \"\"\", params)\n232                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1579,26 +1388,26 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 216,
+      "line_number": 221,
       "line_range": [
-        216,
-        217,
-        218,
-        219,
-        220,
         221,
         222,
         223,
         224,
         225,
-        226
+        226,
+        227,
+        228,
+        229,
+        230,
+        231
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "228             elif agrupacion == 'semana':\n229                 cursor.execute(f\"\"\"\n230                     SELECT DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%x-W%v') as label, COUNT(*) as valor\n231                     FROM obra o\n232                     JOIN semaforo s ON o.estado = s.id_semaforo\n233                     JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n234                     LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n235                     LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n236                     LEFT JOIN empleados e ON e.id_empleados = a.gerente\n237                     {where_sql}\n238                     GROUP BY DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%x-W%v') ORDER BY label ASC\n239                 \"\"\", params)\n240                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "233             elif agrupacion == 'semana':\n234                 cursor.execute(f\"\"\"\n235                     SELECT DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%x-W%v') as label, COUNT(*) as valor\n236                     FROM obra o\n237                     JOIN semaforo s ON o.estado = s.id_semaforo\n238                     JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n239                     LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n240                     LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n241                     LEFT JOIN empleados e ON e.id_empleados = a.gerente\n242                     {where_sql}\n243                     GROUP BY DATE_FORMAT(COALESCE(o.fecha_inicio, o.fecha_fin), '%x-W%v') ORDER BY label ASC\n244                 \"\"\", params)\n245                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1609,26 +1418,26 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 229,
+      "line_number": 234,
       "line_range": [
-        229,
-        230,
-        231,
-        232,
-        233,
         234,
         235,
         236,
         237,
         238,
-        239
+        239,
+        240,
+        241,
+        242,
+        243,
+        244
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "241             else:\n242                 cursor.execute(f\"\"\"\n243                     SELECT DATE(COALESCE(o.fecha_inicio, o.fecha_fin)) as label, COUNT(*) as valor\n244                     FROM obra o\n245                     JOIN semaforo s ON o.estado = s.id_semaforo\n246                     JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n247                     LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n248                     LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n249                     LEFT JOIN empleados e ON e.id_empleados = a.gerente\n250                     {where_sql}\n251                     GROUP BY DATE(COALESCE(o.fecha_inicio, o.fecha_fin)) ORDER BY label ASC\n252                 \"\"\", params)\n253                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "246             else:\n247                 cursor.execute(f\"\"\"\n248                     SELECT DATE(COALESCE(o.fecha_inicio, o.fecha_fin)) as label, COUNT(*) as valor\n249                     FROM obra o\n250                     JOIN semaforo s ON o.estado = s.id_semaforo\n251                     JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n252                     LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n253                     LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n254                     LEFT JOIN empleados e ON e.id_empleados = a.gerente\n255                     {where_sql}\n256                     GROUP BY DATE(COALESCE(o.fecha_inicio, o.fecha_fin)) ORDER BY label ASC\n257                 \"\"\", params)\n258                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1639,26 +1448,26 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 242,
+      "line_number": 247,
       "line_range": [
-        242,
-        243,
-        244,
-        245,
-        246,
         247,
         248,
         249,
         250,
         251,
-        252
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "254 \n255             cursor.execute(f\"\"\"\n256                 SELECT s.estado as label, COUNT(*) as valor\n257                 FROM obra o\n258                 JOIN semaforo s ON o.estado = s.id_semaforo\n259                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n260                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n261                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n262                 {where_sql}\n263                 GROUP BY s.estado\n264             \"\"\", params)\n265             stats['por_estado'] = cursor.fetchall()\n",
+      "code": "259 \n260             cursor.execute(f\"\"\"\n261                 SELECT s.estado as label, COUNT(*) as valor\n262                 FROM obra o\n263                 JOIN semaforo s ON o.estado = s.id_semaforo\n264                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n265                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n266                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n267                 {where_sql}\n268                 GROUP BY s.estado\n269             \"\"\", params)\n270             stats['por_estado'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1669,25 +1478,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 255,
+      "line_number": 260,
       "line_range": [
-        255,
-        256,
-        257,
-        258,
-        259,
         260,
         261,
         262,
         263,
-        264
+        264,
+        265,
+        266,
+        267,
+        268,
+        269
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "266 \n267             cursor.execute(f\"\"\"\n268                 SELECT c.empresa_ganadora as label, COUNT(*) as valor\n269                 FROM obra o\n270                 JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n271                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n272                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n273                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n274                 {where_sql}\n275                 GROUP BY c.empresa_ganadora\n276             \"\"\", params)\n277             stats['por_contratista'] = cursor.fetchall()\n",
+      "code": "271 \n272             cursor.execute(f\"\"\"\n273                 SELECT c.empresa_ganadora as label, COUNT(*) as valor\n274                 FROM obra o\n275                 JOIN contratacion c ON o.contratacion_id_contratacion = c.id_contratacion\n276                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n277                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n278                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n279                 {where_sql}\n280                 GROUP BY c.empresa_ganadora\n281             \"\"\", params)\n282             stats['por_contratista'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1698,25 +1507,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 267,
+      "line_number": 272,
       "line_range": [
-        267,
-        268,
-        269,
-        270,
-        271,
         272,
         273,
         274,
         275,
-        276
+        276,
+        277,
+        278,
+        279,
+        280,
+        281
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "278 \n279             cursor.execute(f\"\"\"\n280                 SELECT o.ubicacion_obra as label, COUNT(*) as valor\n281                 FROM obra o\n282                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n283                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n284                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n285                 {where_sql}\n286                 GROUP BY o.ubicacion_obra\n287             \"\"\", params)\n288             stats['por_ubicacion'] = cursor.fetchall()\n",
+      "code": "283 \n284             cursor.execute(f\"\"\"\n285                 SELECT o.ubicacion_obra as label, COUNT(*) as valor\n286                 FROM obra o\n287                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n288                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n289                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n290                 {where_sql}\n291                 GROUP BY o.ubicacion_obra\n292             \"\"\", params)\n293             stats['por_ubicacion'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1727,24 +1536,24 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 279,
+      "line_number": 284,
       "line_range": [
-        279,
-        280,
-        281,
-        282,
-        283,
         284,
         285,
         286,
-        287
+        287,
+        288,
+        289,
+        290,
+        291,
+        292
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "289 \n290             cursor.execute(f\"\"\"\n291                 SELECT s.color as label, COUNT(*) as valor\n292                 FROM obra o\n293                 JOIN semaforo s ON o.estado = s.id_semaforo\n294                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n295                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n296                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n297                 {where_sql}\n298                 GROUP BY s.color\n299             \"\"\", params)\n300             stats['por_semaforo_color'] = cursor.fetchall()\n",
+      "code": "294 \n295             cursor.execute(f\"\"\"\n296                 SELECT s.color as label, COUNT(*) as valor\n297                 FROM obra o\n298                 JOIN semaforo s ON o.estado = s.id_semaforo\n299                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n300                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n301                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n302                 {where_sql}\n303                 GROUP BY s.color\n304             \"\"\", params)\n305             stats['por_semaforo_color'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1755,25 +1564,25 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 290,
+      "line_number": 295,
       "line_range": [
-        290,
-        291,
-        292,
-        293,
-        294,
         295,
         296,
         297,
         298,
-        299
+        299,
+        300,
+        301,
+        302,
+        303,
+        304
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "301 \n302             cursor.execute(f\"\"\"\n303                 SELECT CASE\n304                     WHEN o.porcentaje_avance_obra < 25 THEN '0-25%'\n305                     WHEN o.porcentaje_avance_obra < 50 THEN '25-50%'\n306                     WHEN o.porcentaje_avance_obra < 75 THEN '50-75%'\n307                     ELSE '75-100%'\n308                 END as label, COUNT(*) as valor\n309                 FROM obra o\n310                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n311                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n312                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n313                 {where_sql}\n314                 GROUP BY label\n315             \"\"\", params)\n316             stats['por_avance'] = cursor.fetchall()\n",
+      "code": "306 \n307             cursor.execute(f\"\"\"\n308                 SELECT CASE\n309                     WHEN o.porcentaje_avance_obra < 25 THEN '0-25%'\n310                     WHEN o.porcentaje_avance_obra < 50 THEN '25-50%'\n311                     WHEN o.porcentaje_avance_obra < 75 THEN '50-75%'\n312                     ELSE '75-100%'\n313                 END as label, COUNT(*) as valor\n314                 FROM obra o\n315                 LEFT JOIN gravedad_obra g ON g.obra_id_obra = o.id_obra AND g.estado = 1\n316                 LEFT JOIN avance a ON a.obra_id_obra = o.id_obra AND a.estado = 1\n317                 LEFT JOIN empleados e ON e.id_empleados = a.gerente\n318                 {where_sql}\n319                 GROUP BY label\n320             \"\"\", params)\n321             stats['por_avance'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1784,13 +1593,8 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 302,
+      "line_number": 307,
       "line_range": [
-        302,
-        303,
-        304,
-        305,
-        306,
         307,
         308,
         309,
@@ -1799,14 +1603,19 @@
         312,
         313,
         314,
-        315
+        315,
+        316,
+        317,
+        318,
+        319,
+        320
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "347 \n348             cursor.execute(f\"\"\"\n349                 SELECT e.cargo as label, COUNT(*) as valor\n350                 FROM empleados e\n351                 {where_sql}\n352                 GROUP BY e.cargo\n353             \"\"\", params)\n354             stats['por_cargo'] = cursor.fetchall()\n",
+      "code": "352 \n353             cursor.execute(f\"\"\"\n354                 SELECT e.cargo as label, COUNT(*) as valor\n355                 FROM empleados e\n356                 {where_sql}\n357                 GROUP BY e.cargo\n358             \"\"\", params)\n359             stats['por_cargo'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1817,46 +1626,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 348,
+      "line_number": 353,
       "line_range": [
-        348,
-        349,
-        350,
-        351,
-        352,
-        353
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
-      "test_id": "B608",
-      "test_name": "hardcoded_sql_expressions"
-    },
-    {
-      "code": "355 \n356             cursor.execute(f\"\"\"\n357                 SELECT e.gerencia_asignada as label, COUNT(*) as valor\n358                 FROM empleados e\n359                 {where_sql}\n360                 GROUP BY e.gerencia_asignada\n361             \"\"\", params)\n362             stats['por_gerencia'] = cursor.fetchall()\n",
-      "col_offset": 31,
-      "end_col_offset": 16,
-      "filename": ".\\models\\model_ReporteEstadistico.py",
-      "issue_confidence": "MEDIUM",
-      "issue_cwe": {
-        "id": 89,
-        "link": "https://cwe.mitre.org/data/definitions/89.html"
-      },
-      "issue_severity": "MEDIUM",
-      "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 356,
-      "line_range": [
+        353,
+        354,
+        355,
         356,
         357,
-        358,
-        359,
-        360,
-        361
+        358
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "363 \n364             cursor.execute(f\"\"\"\n365                 SELECT e.estado as label, COUNT(*) as valor\n366                 FROM empleados e\n367                 {where_sql}\n368                 GROUP BY e.estado\n369             \"\"\", params)\n370             stats['por_estado'] = cursor.fetchall()\n",
+      "code": "360 \n361             cursor.execute(f\"\"\"\n362                 SELECT e.gerencia_asignada as label, COUNT(*) as valor\n363                 FROM empleados e\n364                 {where_sql}\n365                 GROUP BY e.gerencia_asignada\n366             \"\"\", params)\n367             stats['por_gerencia'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1867,23 +1651,23 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 364,
+      "line_number": 361,
       "line_range": [
+        361,
+        362,
+        363,
         364,
         365,
-        366,
-        367,
-        368,
-        369
+        366
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "372             if agrupacion == 'mes':\n373                 cursor.execute(f\"\"\"\n374                     SELECT DATE_FORMAT(e.fecha_ingreso, '%Y-%m') as label, COUNT(*) as valor\n375                     FROM empleados e\n376                     {where_sql}\n377                     GROUP BY DATE_FORMAT(e.fecha_ingreso, '%Y-%m') ORDER BY label ASC\n378                 \"\"\", params)\n379                 stats['por_fecha_ingreso'] = cursor.fetchall()\n",
-      "col_offset": 35,
-      "end_col_offset": 20,
+      "code": "368 \n369             cursor.execute(f\"\"\"\n370                 SELECT e.estado as label, COUNT(*) as valor\n371                 FROM empleados e\n372                 {where_sql}\n373                 GROUP BY e.estado\n374             \"\"\", params)\n375             stats['por_estado'] = cursor.fetchall()\n",
+      "col_offset": 31,
+      "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
@@ -1892,21 +1676,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 373,
+      "line_number": 369,
       "line_range": [
+        369,
+        370,
+        371,
+        372,
         373,
-        374,
-        375,
-        376,
-        377,
-        378
+        374
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "380             elif agrupacion == 'semana':\n381                 cursor.execute(f\"\"\"\n382                     SELECT DATE_FORMAT(e.fecha_ingreso, '%x-W%v') as label, COUNT(*) as valor\n383                     FROM empleados e\n384                     {where_sql}\n385                     GROUP BY DATE_FORMAT(e.fecha_ingreso, '%x-W%v') ORDER BY label ASC\n386                 \"\"\", params)\n387                 stats['por_fecha_ingreso'] = cursor.fetchall()\n",
+      "code": "377             if agrupacion == 'mes':\n378                 cursor.execute(f\"\"\"\n379                     SELECT DATE_FORMAT(e.fecha_ingreso, '%Y-%m') as label, COUNT(*) as valor\n380                     FROM empleados e\n381                     {where_sql}\n382                     GROUP BY DATE_FORMAT(e.fecha_ingreso, '%Y-%m') ORDER BY label ASC\n383                 \"\"\", params)\n384                 stats['por_fecha_ingreso'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1917,21 +1701,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 381,
+      "line_number": 378,
       "line_range": [
+        378,
+        379,
+        380,
         381,
         382,
-        383,
-        384,
-        385,
-        386
+        383
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "388             else:\n389                 cursor.execute(f\"\"\"\n390                     SELECT DATE(e.fecha_ingreso) as label, COUNT(*) as valor\n391                     FROM empleados e\n392                     {where_sql}\n393                     GROUP BY DATE(e.fecha_ingreso) ORDER BY label ASC\n394                 \"\"\", params)\n395                 stats['por_fecha_ingreso'] = cursor.fetchall()\n",
+      "code": "385             elif agrupacion == 'semana':\n386                 cursor.execute(f\"\"\"\n387                     SELECT DATE_FORMAT(e.fecha_ingreso, '%x-W%v') as label, COUNT(*) as valor\n388                     FROM empleados e\n389                     {where_sql}\n390                     GROUP BY DATE_FORMAT(e.fecha_ingreso, '%x-W%v') ORDER BY label ASC\n391                 \"\"\", params)\n392                 stats['por_fecha_ingreso'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1942,21 +1726,46 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 389,
+      "line_number": 386,
       "line_range": [
+        386,
+        387,
+        388,
         389,
         390,
-        391,
-        392,
-        393,
-        394
+        391
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "425 \n426             cursor.execute(f\"\"\"\n427                 SELECT c.tipo_contrato as label, COUNT(*) as valor\n428                 FROM contratacion c\n429                 {where_sql}\n430                 GROUP BY c.tipo_contrato\n431             \"\"\", params)\n432             stats['por_tipo'] = cursor.fetchall()\n",
+      "code": "393             else:\n394                 cursor.execute(f\"\"\"\n395                     SELECT DATE(e.fecha_ingreso) as label, COUNT(*) as valor\n396                     FROM empleados e\n397                     {where_sql}\n398                     GROUP BY DATE(e.fecha_ingreso) ORDER BY label ASC\n399                 \"\"\", params)\n400                 stats['por_fecha_ingreso'] = cursor.fetchall()\n",
+      "col_offset": 35,
+      "end_col_offset": 20,
+      "filename": ".\\models\\model_ReporteEstadistico.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 394,
+      "line_range": [
+        394,
+        395,
+        396,
+        397,
+        398,
+        399
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "430 \n431             cursor.execute(f\"\"\"\n432                 SELECT c.tipo_contrato as label, COUNT(*) as valor\n433                 FROM contratacion c\n434                 {where_sql}\n435                 GROUP BY c.tipo_contrato\n436             \"\"\", params)\n437             stats['por_tipo'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -1967,46 +1776,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 426,
+      "line_number": 431,
       "line_range": [
-        426,
-        427,
-        428,
-        429,
-        430,
-        431
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
-      "test_id": "B608",
-      "test_name": "hardcoded_sql_expressions"
-    },
-    {
-      "code": "433 \n434             cursor.execute(f\"\"\"\n435                 SELECT c.modalidad as label, COUNT(*) as valor\n436                 FROM contratacion c\n437                 {where_sql}\n438                 GROUP BY c.modalidad\n439             \"\"\", params)\n440             stats['por_modalidad'] = cursor.fetchall()\n",
-      "col_offset": 31,
-      "end_col_offset": 16,
-      "filename": ".\\models\\model_ReporteEstadistico.py",
-      "issue_confidence": "MEDIUM",
-      "issue_cwe": {
-        "id": 89,
-        "link": "https://cwe.mitre.org/data/definitions/89.html"
-      },
-      "issue_severity": "MEDIUM",
-      "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 434,
-      "line_range": [
+        431,
+        432,
+        433,
         434,
         435,
-        436,
-        437,
-        438,
-        439
+        436
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "441 \n442             cursor.execute(f\"\"\"\n443                 SELECT c.objeto as label, COUNT(*) as valor\n444                 FROM contratacion c\n445                 {where_sql}\n446                 GROUP BY c.objeto\n447             \"\"\", params)\n448             stats['por_objeto'] = cursor.fetchall()\n",
+      "code": "438 \n439             cursor.execute(f\"\"\"\n440                 SELECT c.modalidad as label, COUNT(*) as valor\n441                 FROM contratacion c\n442                 {where_sql}\n443                 GROUP BY c.modalidad\n444             \"\"\", params)\n445             stats['por_modalidad'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2017,21 +1801,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 442,
+      "line_number": 439,
       "line_range": [
+        439,
+        440,
+        441,
         442,
         443,
-        444,
-        445,
-        446,
-        447
+        444
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "449 \n450             cursor.execute(f\"\"\"\n451                 SELECT c.estado as label, COUNT(*) as valor\n452                 FROM contratacion c\n453                 {where_sql}\n454                 GROUP BY c.estado\n455             \"\"\", params)\n456             stats['por_estado'] = cursor.fetchall()\n",
+      "code": "446 \n447             cursor.execute(f\"\"\"\n448                 SELECT c.objeto as label, COUNT(*) as valor\n449                 FROM contratacion c\n450                 {where_sql}\n451                 GROUP BY c.objeto\n452             \"\"\", params)\n453             stats['por_objeto'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2042,21 +1826,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 450,
+      "line_number": 447,
       "line_range": [
+        447,
+        448,
+        449,
         450,
         451,
-        452,
-        453,
-        454,
-        455
+        452
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "457 \n458             cursor.execute(f\"\"\"\n459                 SELECT c.empresa_ganadora as label, COUNT(*) as valor\n460                 FROM contratacion c\n461                 {where_sql}\n462                 GROUP BY c.empresa_ganadora\n463             \"\"\", params)\n464             stats['por_empresa'] = cursor.fetchall()\n",
+      "code": "454 \n455             cursor.execute(f\"\"\"\n456                 SELECT c.estado as label, COUNT(*) as valor\n457                 FROM contratacion c\n458                 {where_sql}\n459                 GROUP BY c.estado\n460             \"\"\", params)\n461             stats['por_estado'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2067,23 +1851,23 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 458,
+      "line_number": 455,
       "line_range": [
+        455,
+        456,
+        457,
         458,
         459,
-        460,
-        461,
-        462,
-        463
+        460
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "466             if agrupacion == 'mes':\n467                 cursor.execute(f\"\"\"\n468                     SELECT DATE_FORMAT(c.fecha_registro, '%Y-%m') as label, COUNT(*) as valor\n469                     FROM contratacion c\n470                     {where_sql}\n471                     GROUP BY DATE_FORMAT(c.fecha_registro, '%Y-%m') ORDER BY label ASC\n472                 \"\"\", params)\n473                 stats['por_fecha'] = cursor.fetchall()\n",
-      "col_offset": 35,
-      "end_col_offset": 20,
+      "code": "462 \n463             cursor.execute(f\"\"\"\n464                 SELECT c.empresa_ganadora as label, COUNT(*) as valor\n465                 FROM contratacion c\n466                 {where_sql}\n467                 GROUP BY c.empresa_ganadora\n468             \"\"\", params)\n469             stats['por_empresa'] = cursor.fetchall()\n",
+      "col_offset": 31,
+      "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
@@ -2092,21 +1876,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 467,
+      "line_number": 463,
       "line_range": [
+        463,
+        464,
+        465,
+        466,
         467,
-        468,
-        469,
-        470,
-        471,
-        472
+        468
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "474             elif agrupacion == 'semana':\n475                 cursor.execute(f\"\"\"\n476                     SELECT DATE_FORMAT(c.fecha_registro, '%x-W%v') as label, COUNT(*) as valor\n477                     FROM contratacion c\n478                     {where_sql}\n479                     GROUP BY DATE_FORMAT(c.fecha_registro, '%x-W%v') ORDER BY label ASC\n480                 \"\"\", params)\n481                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "471             if agrupacion == 'mes':\n472                 cursor.execute(f\"\"\"\n473                     SELECT DATE_FORMAT(c.fecha_registro, '%Y-%m') as label, COUNT(*) as valor\n474                     FROM contratacion c\n475                     {where_sql}\n476                     GROUP BY DATE_FORMAT(c.fecha_registro, '%Y-%m') ORDER BY label ASC\n477                 \"\"\", params)\n478                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2117,21 +1901,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 475,
+      "line_number": 472,
       "line_range": [
+        472,
+        473,
+        474,
         475,
         476,
-        477,
-        478,
-        479,
-        480
+        477
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "482             else:\n483                 cursor.execute(f\"\"\"\n484                     SELECT DATE(c.fecha_registro) as label, COUNT(*) as valor\n485                     FROM contratacion c\n486                     {where_sql}\n487                     GROUP BY DATE(c.fecha_registro) ORDER BY label ASC\n488                 \"\"\", params)\n489                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "479             elif agrupacion == 'semana':\n480                 cursor.execute(f\"\"\"\n481                     SELECT DATE_FORMAT(c.fecha_registro, '%x-W%v') as label, COUNT(*) as valor\n482                     FROM contratacion c\n483                     {where_sql}\n484                     GROUP BY DATE_FORMAT(c.fecha_registro, '%x-W%v') ORDER BY label ASC\n485                 \"\"\", params)\n486                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2142,21 +1926,46 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 483,
+      "line_number": 480,
       "line_range": [
+        480,
+        481,
+        482,
         483,
         484,
-        485,
-        486,
-        487,
-        488
+        485
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "513 \n514             cursor.execute(f\"\"\"\n515                 SELECT tipo_publicacion as label, COUNT(*) as valor\n516                 FROM publicacion\n517                 {where_sql}\n518                 GROUP BY tipo_publicacion\n519             \"\"\", params)\n520             stats['por_tipo'] = cursor.fetchall()\n",
+      "code": "487             else:\n488                 cursor.execute(f\"\"\"\n489                     SELECT DATE(c.fecha_registro) as label, COUNT(*) as valor\n490                     FROM contratacion c\n491                     {where_sql}\n492                     GROUP BY DATE(c.fecha_registro) ORDER BY label ASC\n493                 \"\"\", params)\n494                 stats['por_fecha'] = cursor.fetchall()\n",
+      "col_offset": 35,
+      "end_col_offset": 20,
+      "filename": ".\\models\\model_ReporteEstadistico.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 488,
+      "line_range": [
+        488,
+        489,
+        490,
+        491,
+        492,
+        493
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "518 \n519             cursor.execute(f\"\"\"\n520                 SELECT tipo_publicacion as label, COUNT(*) as valor\n521                 FROM publicacion\n522                 {where_sql}\n523                 GROUP BY tipo_publicacion\n524             \"\"\", params)\n525             stats['por_tipo'] = cursor.fetchall()\n",
       "col_offset": 31,
       "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2167,48 +1976,23 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 514,
+      "line_number": 519,
       "line_range": [
-        514,
-        515,
-        516,
-        517,
-        518,
-        519
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
-      "test_id": "B608",
-      "test_name": "hardcoded_sql_expressions"
-    },
-    {
-      "code": "521 \n522             cursor.execute(f\"\"\"\n523                 SELECT nombre_responsable as label, COUNT(*) as valor\n524                 FROM publicacion\n525                 {where_sql}\n526                 GROUP BY nombre_responsable\n527             \"\"\", params)\n528             stats['por_autor'] = cursor.fetchall()\n",
-      "col_offset": 31,
-      "end_col_offset": 16,
-      "filename": ".\\models\\model_ReporteEstadistico.py",
-      "issue_confidence": "MEDIUM",
-      "issue_cwe": {
-        "id": 89,
-        "link": "https://cwe.mitre.org/data/definitions/89.html"
-      },
-      "issue_severity": "MEDIUM",
-      "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 522,
-      "line_range": [
+        519,
+        520,
+        521,
         522,
         523,
-        524,
-        525,
-        526,
-        527
+        524
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "530             if agrupacion == 'mes':\n531                 cursor.execute(f\"\"\"\n532                     SELECT DATE_FORMAT(fecha_publicacion, '%Y-%m') as label, COUNT(*) as valor\n533                     FROM publicacion\n534                     {where_sql}\n535                     GROUP BY DATE_FORMAT(fecha_publicacion, '%Y-%m') ORDER BY label ASC\n536                 \"\"\", params)\n537                 stats['por_fecha'] = cursor.fetchall()\n",
-      "col_offset": 35,
-      "end_col_offset": 20,
+      "code": "526 \n527             cursor.execute(f\"\"\"\n528                 SELECT nombre_responsable as label, COUNT(*) as valor\n529                 FROM publicacion\n530                 {where_sql}\n531                 GROUP BY nombre_responsable\n532             \"\"\", params)\n533             stats['por_autor'] = cursor.fetchall()\n",
+      "col_offset": 31,
+      "end_col_offset": 16,
       "filename": ".\\models\\model_ReporteEstadistico.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
@@ -2217,21 +2001,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 531,
+      "line_number": 527,
       "line_range": [
+        527,
+        528,
+        529,
+        530,
         531,
-        532,
-        533,
-        534,
-        535,
-        536
+        532
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "538             elif agrupacion == 'semana':\n539                 cursor.execute(f\"\"\"\n540                     SELECT DATE_FORMAT(fecha_publicacion, '%x-W%v') as label, COUNT(*) as valor\n541                     FROM publicacion\n542                     {where_sql}\n543                     GROUP BY DATE_FORMAT(fecha_publicacion, '%x-W%v') ORDER BY label ASC\n544                 \"\"\", params)\n545                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "535             if agrupacion == 'mes':\n536                 cursor.execute(f\"\"\"\n537                     SELECT DATE_FORMAT(fecha_publicacion, '%Y-%m') as label, COUNT(*) as valor\n538                     FROM publicacion\n539                     {where_sql}\n540                     GROUP BY DATE_FORMAT(fecha_publicacion, '%Y-%m') ORDER BY label ASC\n541                 \"\"\", params)\n542                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2242,21 +2026,21 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 539,
+      "line_number": 536,
       "line_range": [
+        536,
+        537,
+        538,
         539,
         540,
-        541,
-        542,
-        543,
-        544
+        541
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "546             else:\n547                 cursor.execute(f\"\"\"\n548                     SELECT DATE(fecha_publicacion) as label, COUNT(*) as valor\n549                     FROM publicacion\n550                     {where_sql}\n551                     GROUP BY DATE(fecha_publicacion) ORDER BY label ASC\n552                 \"\"\", params)\n553                 stats['por_fecha'] = cursor.fetchall()\n",
+      "code": "543             elif agrupacion == 'semana':\n544                 cursor.execute(f\"\"\"\n545                     SELECT DATE_FORMAT(fecha_publicacion, '%x-W%v') as label, COUNT(*) as valor\n546                     FROM publicacion\n547                     {where_sql}\n548                     GROUP BY DATE_FORMAT(fecha_publicacion, '%x-W%v') ORDER BY label ASC\n549                 \"\"\", params)\n550                 stats['por_fecha'] = cursor.fetchall()\n",
       "col_offset": 35,
       "end_col_offset": 20,
       "filename": ".\\models\\model_ReporteEstadistico.py",
@@ -2267,14 +2051,39 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 547,
+      "line_number": 544,
       "line_range": [
+        544,
+        545,
+        546,
         547,
         548,
-        549,
-        550,
-        551,
-        552
+        549
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "551             else:\n552                 cursor.execute(f\"\"\"\n553                     SELECT DATE(fecha_publicacion) as label, COUNT(*) as valor\n554                     FROM publicacion\n555                     {where_sql}\n556                     GROUP BY DATE(fecha_publicacion) ORDER BY label ASC\n557                 \"\"\", params)\n558                 stats['por_fecha'] = cursor.fetchall()\n",
+      "col_offset": 35,
+      "end_col_offset": 20,
+      "filename": ".\\models\\model_ReporteEstadistico.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 552,
+      "line_range": [
+        552,
+        553,
+        554,
+        555,
+        556,
+        557
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
@@ -2753,7 +2562,7 @@
       "test_name": "try_except_pass"
     },
     {
-      "code": "285                 tiene_trigger = cur.fetchone() is not None\n286             except Exception:\n287                 pass\n288             if tiene_cedula or tiene_trigger:\n",
+      "code": "287                 tiene_trigger = cur.fetchone() is not None\n288             except Exception:\n289                 pass\n290             if tiene_cedula or tiene_trigger:\n",
       "col_offset": 12,
       "end_col_offset": 20,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2764,17 +2573,17 @@
       },
       "issue_severity": "LOW",
       "issue_text": "Try, Except, Pass detected.",
-      "line_number": 286,
+      "line_number": 288,
       "line_range": [
-        286,
-        287
+        288,
+        289
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html",
       "test_id": "B110",
       "test_name": "try_except_pass"
     },
     {
-      "code": "327 \n328             sql = f\"INSERT INTO inspeccion {columnas} VALUES ({valores})\"\n329             cur.execute(sql, params)\n",
+      "code": "329 \n330             sql = f\"INSERT INTO inspeccion {columnas} VALUES ({valores})\"\n331             cur.execute(sql, params)\n",
       "col_offset": 20,
       "end_col_offset": 43,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2785,16 +2594,16 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 328,
+      "line_number": 330,
       "line_range": [
-        328
+        330
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "379 \n380             sql = f\"\"\"\n381                 UPDATE inspeccion\n382                 SET inspector = %s, fecha_inspeccion = %s, tipo_inspeccion = %s,\n383                     observaciones = %s, obra_id_obra = %s,\n384                     {semaforo_col} = %s, obra_contratacion_id_contratacion = %s,\n385                     obra_gestionar_proyectos_codigo_proyecto = %s,\n386                     obra_id_obra1 = %s, {semaforo1_col} = %s,\n387                     obra_contratacion_id_contratacion1 = %s,\n388                     obra_gestionar_proyectos_codigo_proyecto1 = %s,\n389                     evidencia_id_evidencia = %s{set_evidencias}{set_estado}\n390                 WHERE id_inspeccion = %s AND 1 = 1\n391             \"\"\"\n392             params_base = (\n",
+      "code": "381 \n382             sql = f\"\"\"\n383                 UPDATE inspeccion\n384                 SET inspector = %s, fecha_inspeccion = %s, tipo_inspeccion = %s,\n385                     observaciones = %s, obra_id_obra = %s,\n386                     {semaforo_col} = %s, obra_contratacion_id_contratacion = %s,\n387                     obra_gestionar_proyectos_codigo_proyecto = %s,\n388                     obra_id_obra1 = %s, {semaforo1_col} = %s,\n389                     obra_contratacion_id_contratacion1 = %s,\n390                     obra_gestionar_proyectos_codigo_proyecto1 = %s,\n391                     evidencia_id_evidencia = %s{set_evidencias}{set_estado}\n392                 WHERE id_inspeccion = %s AND 1 = 1\n393             \"\"\"\n394             params_base = (\n",
       "col_offset": 22,
       "end_col_offset": 20,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2805,10 +2614,8 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 380,
+      "line_number": 382,
       "line_range": [
-        380,
-        381,
         382,
         383,
         384,
@@ -2818,14 +2625,16 @@
         388,
         389,
         390,
-        391
+        391,
+        392,
+        393
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "470             where = \"WHERE i.estado = 1\" if tiene_estado else \"\"\n471             cur.execute(f\"\"\"\n472                 SELECT i.*, e.nombre_empleado AS inspector_nombre\n473                 FROM inspeccion i\n474                 LEFT JOIN empleados e ON e.id_empleados = i.inspector\n475                 {where}\n476                 ORDER BY i.id_inspeccion DESC\n477             \"\"\")\n478             rows = cur.fetchall()\n",
+      "code": "474             where = \"WHERE i.estado = 1\" if tiene_estado else \"\"\n475             cur.execute(f\"\"\"\n476                 SELECT i.*, e.nombre_empleado AS inspector_nombre\n477                 FROM inspeccion i\n478                 LEFT JOIN empleados e ON e.id_empleados = i.inspector\n479                 {where}\n480                 ORDER BY i.id_inspeccion DESC\n481             \"\"\")\n482             rows = cur.fetchall()\n",
       "col_offset": 28,
       "end_col_offset": 16,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2836,22 +2645,22 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 471,
+      "line_number": 475,
       "line_range": [
-        471,
-        472,
-        473,
-        474,
         475,
         476,
-        477
+        477,
+        478,
+        479,
+        480,
+        481
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "494             where = \"AND i.estado = 1\" if tiene_estado else \"\"\n495             cur.execute(f\"\"\"\n496                 SELECT i.*, e.nombre_empleado AS inspector_nombre,\n497                        ev.id_evidencia, ev.fotos AS evidencia_fotos,\n498                        ev.url_archivos AS evidencia_url, ev.etapa AS evidencia_etapa\n499                 FROM inspeccion i\n500                 LEFT JOIN empleados e ON e.id_empleados = i.inspector\n501                 LEFT JOIN evidencia ev ON ev.id_evidencia = i.evidencia_id_evidencia AND ev.estado = 1\n502                 WHERE i.id_inspeccion = %s {where}\n503             \"\"\", (self.__id_inspeccion,))\n504             row = cur.fetchone()\n",
+      "code": "498             where = \"AND i.estado = 1\" if tiene_estado else \"\"\n499             cur.execute(f\"\"\"\n500                 SELECT i.*, e.nombre_empleado AS inspector_nombre,\n501                        ev.id_evidencia, ev.fotos AS evidencia_fotos,\n502                        ev.url_archivos AS evidencia_url, ev.etapa AS evidencia_etapa\n503                 FROM inspeccion i\n504                 LEFT JOIN empleados e ON e.id_empleados = i.inspector\n505                 LEFT JOIN evidencia ev ON ev.id_evidencia = i.evidencia_id_evidencia AND ev.estado = 1\n506                 WHERE i.id_inspeccion = %s {where}\n507             \"\"\", (self.__id_inspeccion,))\n508             row = cur.fetchone()\n",
       "col_offset": 28,
       "end_col_offset": 43,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2862,24 +2671,24 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 495,
+      "line_number": 499,
       "line_range": [
-        495,
-        496,
-        497,
-        498,
         499,
         500,
         501,
         502,
-        503
+        503,
+        504,
+        505,
+        506,
+        507
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "524         cur.execute(\n525             f\"SELECT id_evidencia, fotos, url_archivos, etapa FROM evidencia WHERE id_evidencia IN ({placeholders}) AND estado = 1\"\n526         , ids)\n",
+      "code": "528         cur.execute(\n529             f\"SELECT id_evidencia, fotos, url_archivos, etapa FROM evidencia WHERE id_evidencia IN ({placeholders}) AND estado = 1\"\n530         , ids)\n",
       "col_offset": 14,
       "end_col_offset": 100,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2890,16 +2699,16 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 525,
+      "line_number": 529,
       "line_range": [
-        525
+        529
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "595             col_semaforo = 'semaforo_id_semaforo' if cur.fetchone() else 'estado'\n596             cur.execute(f\"\"\"\n597                 SELECT id_obra, titulo_obra, ubicacion_obra,\n598                        {col_semaforo} AS estado, contratacion_id_contratacion,\n599                        gestionar_proyectos_codigo_proyecto\n600                 FROM obra\n601                 ORDER BY id_obra DESC\n602             \"\"\")\n603             return cur.fetchall()\n",
+      "code": "599             col_semaforo = 'semaforo_id_semaforo' if cur.fetchone() else 'estado'\n600             cur.execute(f\"\"\"\n601                 SELECT id_obra, titulo_obra, ubicacion_obra,\n602                        {col_semaforo} AS estado, contratacion_id_contratacion,\n603                        gestionar_proyectos_codigo_proyecto\n604                 FROM obra\n605                 ORDER BY id_obra DESC\n606             \"\"\")\n607             return cur.fetchall()\n",
       "col_offset": 28,
       "end_col_offset": 23,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2910,22 +2719,22 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 596,
+      "line_number": 600,
       "line_range": [
-        596,
-        597,
-        598,
-        599,
         600,
         601,
-        602
+        602,
+        603,
+        604,
+        605,
+        606
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "615             col_semaforo = 'semaforo_id_semaforo' if cur.fetchone() else 'estado'\n616             cur.execute(f\"\"\"\n617                 SELECT id_obra, titulo_obra, ubicacion_obra,\n618                        {col_semaforo} AS estado, contratacion_id_contratacion,\n619                        gestionar_proyectos_codigo_proyecto\n620                 FROM obra\n621                 WHERE id_obra = %s\n622             \"\"\", (obra_id,))\n623             return cur.fetchone()\n",
+      "code": "619             col_semaforo = 'semaforo_id_semaforo' if cur.fetchone() else 'estado'\n620             cur.execute(f\"\"\"\n621                 SELECT id_obra, titulo_obra, ubicacion_obra,\n622                        {col_semaforo} AS estado, contratacion_id_contratacion,\n623                        gestionar_proyectos_codigo_proyecto\n624                 FROM obra\n625                 WHERE id_obra = %s\n626             \"\"\", (obra_id,))\n627             return cur.fetchone()\n",
       "col_offset": 28,
       "end_col_offset": 23,
       "filename": ".\\models\\model_inspeccion.py",
@@ -2936,15 +2745,15 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 616,
+      "line_number": 620,
       "line_range": [
-        616,
-        617,
-        618,
-        619,
         620,
         621,
-        622
+        622,
+        623,
+        624,
+        625,
+        626
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
@@ -3586,7 +3395,7 @@
       "test_name": "hardcoded_password_string"
     },
     {
-      "code": "36     def build_select(self, columns: str) -> str:\n37         sql = f\"SELECT {columns} FROM {self.table}\"\n38         if self.alias:\n",
+      "code": "68             raise ValueError(\"La lista de columnas contiene expresiones no permitidas.\")\n69         sql = f\"SELECT {columns} FROM {self.table}\"\n70         if self.alias:\n",
       "col_offset": 16,
       "end_col_offset": 23,
       "filename": ".\\services\\filtros_service.py",
@@ -3597,16 +3406,16 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 37,
+      "line_number": 69,
       "line_range": [
-        37
+        69
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
       "test_name": "hardcoded_sql_expressions"
     },
     {
-      "code": "38         if self.alias:\n39             sql = f\"SELECT {columns} FROM {self.table} AS {self.alias}\"\n40         for j in self.joins:\n",
+      "code": "70         if self.alias:\n71             sql = f\"SELECT {columns} FROM {self.table} AS {self.alias}\"\n72         for j in self.joins:\n",
       "col_offset": 20,
       "end_col_offset": 27,
       "filename": ".\\services\\filtros_service.py",
@@ -3617,9 +3426,9 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 39,
+      "line_number": 71,
       "line_range": [
-        39
+        71
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",

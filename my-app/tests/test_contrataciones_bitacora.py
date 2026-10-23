@@ -1,10 +1,13 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from app import app
 from models.model_contratacion import ContratacionModel
 
 
+@pytest.mark.usefixtures('authenticated_permissions')
 class ContratacionesBitacoraTestCase(unittest.TestCase):
     def setUp(self):
         self.app = app
@@ -58,7 +61,9 @@ class ContratacionesBitacoraTestCase(unittest.TestCase):
                 return None
             if 'INSERT INTO contratacion' in sql:
                 if mock_cursor.execute.call_count == 2:
-                    raise type('DuplicateError', (Exception,), {'errno': 1062})('Duplicate entry')
+                    raise type('DuplicateError', (Exception,), {'errno': 1062})(
+                        "Duplicate entry '5' for key 'PRIMARY'"
+                    )
                 return None
             return None
 
@@ -69,7 +74,7 @@ class ContratacionesBitacoraTestCase(unittest.TestCase):
             (6,),
         ]
 
-        with patch('models.model_contratacion.connectionBD', return_value=mock_conn):
+        with patch.object(ContratacionModel, 'obtener_conexion', return_value=mock_conn):
             ok, msg = ContratacionModel().registrar_contrataciones({
                 'descripcion': 'Contrato de prueba',
                 'empresa_ganadora': 'Empresa S.A.',

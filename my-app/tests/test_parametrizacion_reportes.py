@@ -7,9 +7,12 @@ a las funciones de los modelos y que el filtrado por módulo funcione.
 import unittest
 from unittest.mock import patch, MagicMock
 
+import pytest
+
 from app import app
 
 
+@pytest.mark.usefixtures('authenticated_permissions')
 class ReportesParametrizacionTestCase(unittest.TestCase):
     def setUp(self):
         self.app = app

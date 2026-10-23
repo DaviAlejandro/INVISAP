@@ -87,6 +87,8 @@ class ContratacionModel(BaseModel):
                     error_msg = str(e)
                     print(f"--- [MODELO] ERROR SQL INSERT: {error_msg} ---") 
                     if "1062" in error_msg or "Duplicate" in error_msg:
+                        if "PRIMARY" in error_msg or "id_contratacion" in error_msg:
+                            continue
                         return False, "El Número de Contrato ya se Encuentra Registrado."
                     return False, f"Error SQL: {error_msg}"
 

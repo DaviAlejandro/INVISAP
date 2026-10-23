@@ -24,6 +24,7 @@ from services.bitacora_service import BitacoraService
 
 # Regex de correo
 EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+_PROFILE_COLUMNS = {'nombre': 'nombre', 'correo': 'correo', 'avatar': 'avatar'}
 
 # Regex: 8-12 caracteres, letras y al menos un símbolo especial.
 PASSWORD_REGEX = r'^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñ]).{8,12}$'
@@ -40,41 +41,31 @@ class _LoginDatabase(ConexionBD):
 # ============================================
 def verificar_recaptcha(token):
     """Valida el token g-recaptcha-response. Retorna (bool, mensaje)."""
-    # DESACTIVADO PARA PRUEBAS POSTMAN / DESARROLLO
-    return True, 'OK'
-    
-    # Código original comentado:
-    # if not token:
-    #     return False, 'Debes completar el desafío reCAPTCHA (marca "No soy un robot").'
-    # if not RECAPTCHA_SECRET_KEY:
-    #     return False, 'La verificación reCAPTCHA no está configurada.'
-    #
-    # data = urllib.parse.urlencode({
-    #     'secret': RECAPTCHA_SECRET_KEY,
-    #     'response': token
-    # }).encode('utf-8')
-    #
-    # req = urllib.request.Request(
-    #     RECAPTCHA_VERIFY_URL,
-    #     data=data,
-    #     headers={'Content-Type': 'application/x-www-form-urlencoded'},
-    #     method='POST'
-    # )
-    #
-    # try:
-    #     with urllib.request.urlopen(req, timeout=5) as resp:
-    #         resultado = json.loads(resp.read().decode('utf-8'))
-    # except Exception as e:
-    #     print(f"reCAPTCHA: no se pudo contactar a Google (sin conexión). {e}")
-    #     return False, 'No se pudo validar reCAPTCHA. Inténtalo de nuevo más tarde.'
-    #
-    # if resultado.get('success'):
-    #     return True, 'OK'
-    #
-    # # Token inválido, expirado o score bajo
-    # errores = resultado.get('error-codes', [])
-    # print(f"reCAPTCHA: verificación fallida. {errores}")
-    # return False, 'La verificación reCAPTCHA falló. Inténtalo de nuevo.'
+    if not token:
+        return False, 'Debes completar el desafío reCAPTCHA (marca "No soy un robot").'
+    if not RECAPTCHA_SECRET_KEY:
+        return False, 'La verificación reCAPTCHA no está configurada.'
+
+    data = urllib.parse.urlencode({
+        'secret': RECAPTCHA_SECRET_KEY,
+        'response': token
+    }).encode('utf-8')
+    req = urllib.request.Request(
+        RECAPTCHA_VERIFY_URL,
+        data=data,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        method='POST'
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            resultado = json.loads(resp.read().decode('utf-8'))
+    except (OSError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError):
+        return False, 'No se pudo validar reCAPTCHA. Inténtalo de nuevo más tarde.'
+
+    if isinstance(resultado, dict) and resultado.get('success'):
+        return True, 'OK'
+    return False, 'La verificación reCAPTCHA falló. Inténtalo de nuevo.'
 
 def recibeInsertRegisterUser(nombre, correo, pass_user, cedula, rol='Usuario'):
     if not re.match(PASSWORD_REGEX, pass_user):
@@ -279,8 +270,7 @@ def procesar_imagen_avatar(foto):
     basepath = os.path.abspath(os.path.dirname(__file__))
     upload_dir = os.path.join(basepath, '../static/assets/img/avatars/')
     if not os.path.exists(upload_dir):
-        os.makedirs(upload_dir)
-        os.chmod(upload_dir, 0o755)
+        os.makedirs(upload_dir, mode=0o750)
 
     foto.save(os.path.join(upload_dir, nombre_file))
     return 'assets/img/avatars/' + nombre_file
@@ -326,7 +316,9 @@ def procesar_update_perfil_ajax(request):
     conexion = _LoginDatabase.obtener_conexion_seguridad()
     cursor = conexion.cursor()
     try:
-        campos_sql = ', '.join([f"{campo} = %s" for campo in cambios.keys()])
+        campos_sql = ', '.join(
+            f"{_PROFILE_COLUMNS[campo]} = %s" for campo in cambios
+        )
         sql = f"UPDATE usuarios SET {campos_sql} WHERE id_usuarios = %s"
         params = list(cambios.values()) + [id_user]
         cursor.execute(sql, params)

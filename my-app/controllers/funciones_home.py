@@ -95,9 +95,7 @@ def procesar_imagen_perfil(foto):
 
         # Validar si existe la ruta y crearla si no existe
         if not os.path.exists(upload_dir):
-            os.makedirs(upload_dir)
-            # Dando permiso a la carpeta
-            os.chmod(upload_dir, 0o755)
+            os.makedirs(upload_dir, mode=0o750)
 
         # Construir la ruta completa de subida del archivo
         upload_path = os.path.join(upload_dir, nombreFile)

@@ -198,7 +198,8 @@ def loginCliente():
                 flash('Credenciales incorrectas o usuario inactivo.', 'danger')
                 return render_template(f'{PATH_URL_LOGIN}/base_login.html')
         else:
-            flash('Primero debes iniciar sesión.', 'danger')
+            if request.method == 'POST':
+                flash('Primero debes iniciar sesión.', 'danger')
             return render_template(f'{PATH_URL_LOGIN}/base_login.html')
 
 

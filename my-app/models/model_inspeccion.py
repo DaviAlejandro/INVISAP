@@ -96,7 +96,7 @@ class InspeccionModel(BaseModel):
         ])
         for col_name, col_def in columnas:
             try:
-                cur.execute(f"SHOW COLUMNS FROM inspeccion LIKE '{col_name}'")
+                cur.execute("SHOW COLUMNS FROM inspeccion LIKE %s", (col_name,))
                 if not cur.fetchone():
                     cur.execute(f"ALTER TABLE inspeccion ADD COLUMN {col_name} {col_def}")
                     print(f"[DB] Columna '{col_name}' agregada a tabla inspeccion")
@@ -133,7 +133,9 @@ class InspeccionModel(BaseModel):
                 trigger_name = trigger[0] if isinstance(trigger, (list, tuple)) else trigger.get('TRIGGER_NAME', '')
                 if trigger_name:
                     try:
-                        cur.execute(f"DROP TRIGGER IF EXISTS {trigger_name}")
+                        if not re.fullmatch(r'[A-Za-z0-9_$]+', trigger_name):
+                            raise ValueError("Nombre de trigger no válido.")
+                        cur.execute(f"DROP TRIGGER IF EXISTS `{trigger_name}`")
                         print(f"[DB] Trigger eliminado: {trigger_name}")
                     except Exception as e:
                         print(f"[DB] Error al eliminar trigger {trigger_name}: {e}")
@@ -448,12 +450,14 @@ class InspeccionModel(BaseModel):
             conn.close()
 
     def __columna_existe(self, tabla, columna):
+        if tabla not in {'inspeccion', 'obra'}:
+            raise ValueError("Tabla no permitida para consultar columnas.")
         conn = self._conectar()
         if not conn:
             return False
         cur = conn.cursor()
         try:
-            cur.execute(f"SHOW COLUMNS FROM {tabla} LIKE '{columna}'")
+            cur.execute(f"SHOW COLUMNS FROM {tabla} LIKE %s", (columna,))
             return cur.fetchone() is not None
         finally:
             cur.close()

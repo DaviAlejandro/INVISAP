@@ -22,7 +22,11 @@ class ReporteExcelModel(BaseModel):
         for key, val in filtros.items():
             if not val and val != 0:
                 continue
-            columna = mapeo.get(key, key)
+            if key not in mapeo and key not in (
+                'nombre_solicitante', 'sector', 'ambito', 'titulo_obra',
+            ):
+                continue
+            columna = mapeo.get(key)
             if key == 'nombre_solicitante':
                 where_clauses.append("(COALESCE(part.nombre, inst.razon_social, com.nombre_comunidad) LIKE %s)")
                 params.append(f"%{val}%")

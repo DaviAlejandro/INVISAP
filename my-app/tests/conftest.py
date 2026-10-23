@@ -17,3 +17,17 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture
+def authenticated_permissions(monkeypatch):
+    from controllers import UserController
+    from models.model_seguridad import ModuloModel
+
+    monkeypatch.setattr(ModuloModel, 'consultar_activos', lambda self: [])
+    monkeypatch.setattr(UserController, 'verificar_permiso', lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        UserController,
+        'verificar_permiso_accion',
+        lambda *args, **kwargs: True
+    )

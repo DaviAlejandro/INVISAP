@@ -24,7 +24,12 @@ class ReporteEstadisticoModel(BaseModel):
                 continue
             if key in ('tipo_reporte', 'agrupacion'):
                 continue
-            columna = mapeo.get(key, key)
+            if key not in mapeo and key not in (
+                'porcentaje_avance_min', 'porcentaje_avance_max',
+                'sector', 'ambito',
+            ):
+                continue
+            columna = mapeo.get(key)
             if key == 'correo_dominio':
                 where_clauses.append(f"{columna} LIKE %s")
                 params.append(f"%{val}%")

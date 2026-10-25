@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <img alt="Python 3.11" src="https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white">
+  <img alt="Python 3.11" src="https://img.shields.io/badge/Python-3.14-3776AB?style=flat-square&logo=python&logoColor=white">
   <img alt="Flask 2.3" src="https://img.shields.io/badge/Flask-2.3-000000?style=flat-square&logo=flask&logoColor=white">
-  <img alt="MySQL 8" src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white">
+  <img alt="MySQL 9" src="https://img.shields.io/badge/MySQL-9.4.0-4479A1?style=flat-square&logo=mysql&logoColor=white">
   <img alt="Interfaz en español" src="https://img.shields.io/badge/Idioma-Espa%C3%B1ol-087A24?style=flat-square">
 </p>
 
@@ -61,7 +61,7 @@ La siguiente demostración recorre la página de INVILARA. También puedes [abri
 ## Requisitos
 
 - Python 3.11.
-- MySQL 8.0.
+- MySQL 9.4.0
 - Git.
 - Un navegador web actualizado.
 
@@ -79,7 +79,7 @@ cd INVISAP
 **Windows (PowerShell):**
 
 ```powershell
-py -3.11 -m venv .venv
+py -3.14 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
